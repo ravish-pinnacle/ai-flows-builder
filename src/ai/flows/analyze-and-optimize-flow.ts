@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -24,7 +25,7 @@ const AnalyzeAndOptimizeOutputSchema = z.object({
   suggestions: z
     .string()
     .describe(
-      'A list of suggestions for improving the WhatsApp flow design, focusing on user experience and efficiency.'
+      'A list of suggestions for improving the WhatsApp flow design, focusing on user experience and efficiency, in markdown format.'
     ),
 });
 export type AnalyzeAndOptimizeOutput = z.infer<typeof AnalyzeAndOptimizeOutputSchema>;
@@ -41,19 +42,23 @@ const analyzeAndOptimizePrompt = ai.definePrompt({
   name: 'analyzeAndOptimizePrompt',
   input: {schema: AnalyzeAndOptimizeInputSchema},
   output: {schema: AnalyzeAndOptimizeOutputSchema},
-  prompt: `You are an AI expert in designing user-friendly and efficient WhatsApp flows. Analyze the provided flow definition and suggest improvements for better user engagement and outcomes.
+  prompt: `You are an AI expert in designing user-friendly and efficient WhatsApp flows, referencing the official Facebook documentation. Analyze the provided WhatsApp flow JSON definition and suggest improvements for better user engagement and outcomes.
 
 Flow Definition:
+\`\`\`json
 {{{flowDefinition}}}
+\`\`\`
 
 Provide specific, actionable suggestions, focusing on:
-- Simplifying the user journey
-- Reducing the number of steps
-- Improving clarity of instructions
-- Optimizing the use of media and interactive elements
-- Ensuring accessibility for all users
+- **Clarity and Simplicity**: Are screen layouts intuitive? Is text clear and concise? Are there too many components on a single screen?
+- **User Journey**: Is the navigation between screens logical? Can the number of steps or screens be reduced without losing functionality?
+- **Component Usage**: Are components like Text, Image, Button, TextInput, CheckboxGroup, RadioButtonGroup, and Dropdown used effectively? For example, is a Dropdown used when a RadioButtonGroup might be better for a small number of options?
+- **Data Handling**: Is data collection efficient? Are variable names clear? Are data_exchange actions well-defined?
+- **Error Handling**: Are error states or actions considered for data submission or navigation failures?
+- **Accessibility**: While not directly inferable from JSON, provide general reminders if the flow structure suggests potential accessibility issues (e.g., very complex forms).
+- **Actionability**: Are buttons clearly labeled? Do actions lead to expected outcomes?
 
-Suggestions (in markdown format):`,
+Suggestions (in markdown format, using bullet points for each suggestion):`,
 });
 
 // Define the Genkit flow for analyzing and optimizing WhatsApp flows.
