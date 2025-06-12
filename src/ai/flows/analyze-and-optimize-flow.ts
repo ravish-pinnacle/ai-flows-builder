@@ -42,7 +42,7 @@ const analyzeAndOptimizePrompt = ai.definePrompt({
   name: 'analyzeAndOptimizePrompt',
   input: {schema: AnalyzeAndOptimizeInputSchema},
   output: {schema: AnalyzeAndOptimizeOutputSchema},
-  prompt: `You are an AI expert in designing user-friendly and efficient WhatsApp flows, referencing the official Facebook documentation. Analyze the provided WhatsApp flow JSON definition and suggest improvements for better user engagement and outcomes.
+  prompt: `You are an AI expert in designing user-friendly and efficient WhatsApp flows, strictly referencing the official Facebook documentation for WhatsApp Flow JSON v7.1. Analyze the provided WhatsApp flow JSON definition and suggest improvements for better user engagement and outcomes.
 
 Flow Definition:
 \`\`\`json
@@ -50,13 +50,19 @@ Flow Definition:
 \`\`\`
 
 Provide specific, actionable suggestions, focusing on:
-- **Clarity and Simplicity**: Are screen layouts intuitive? Is text clear and concise? Are there too many components on a single screen?
+- **Schema Adherence (v7.1)**:
+    - Verify the "version" property is "7.1". If not, suggest updating it.
+    - Check for non-standard components like 'TextCaption', 'TextBody', or 'RichText'. If found, suggest replacing them with standard v7.1 components:
+        - 'TextCaption'/'TextBody' should typically be replaced by 'Text' (using its 'style' property for bold/italic if needed) or 'Headline'.
+        - 'RichText' functionality (like markdown for headings, lists, embedded images/links) should be achieved using a combination of 'Headline', multiple 'Text' components, 'Image', and 'EmbeddedLink' components.
+    - Ensure actions (navigate, data_exchange) are primarily tied to 'Button' components or specific data_exchange success/error handlers, not to components like 'OptIn' or 'Footer' for their primary interaction.
+- **Clarity and Simplicity**: Are screen layouts intuitive? Is text clear and concise (using 'Text' or 'Headline')? Are there too many components on a single screen?
 - **User Journey**: Is the navigation between screens logical? Can the number of steps or screens be reduced without losing functionality?
-- **Component Usage**: Are components like Text, Image, Button, TextInput, CheckboxGroup, RadioButtonGroup, and Dropdown used effectively? For example, is a Dropdown used when a RadioButtonGroup might be better for a small number of options?
+- **Component Usage (v7.1)**: Are standard components like Text, Image, Button, TextInput, TextArea, CheckboxGroup, RadioButtonGroup, Dropdown, DatePicker, OptIn, EmbeddedLink, Footer, Headline, and ScreenConfirmation used effectively and according to v7.1 specs? For example, is a Dropdown used when a RadioButtonGroup might be better for a small number of options? Ensure each item in 'data_source' for CheckboxGroup, RadioButtonGroup, and Dropdown has both a unique 'id' and a user-facing 'title'.
 - **Data Handling**: Is data collection efficient? Are variable names clear? Are data_exchange actions well-defined?
 - **Error Handling**: Are error states or actions considered for data submission or navigation failures?
-- **Accessibility**: While not directly inferable from JSON, provide general reminders if the flow structure suggests potential accessibility issues (e.g., very complex forms).
-- **Actionability**: Are buttons clearly labeled? Do actions lead to expected outcomes?
+- **Accessibility**: While not directly inferable from JSON, provide general reminders if the flow structure suggests potential accessibility issues (e.g., very complex forms, lack of clear labels on input fields).
+- **Actionability**: Are 'Button' components clearly labeled? Do actions lead to expected outcomes?
 
 Suggestions (in markdown format, using bullet points for each suggestion):`,
 });
