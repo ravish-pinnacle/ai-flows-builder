@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC } from 'react';
-import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion } from 'lucide-react';
 import Image from 'next/image';
 import { Button as ShadButton } from '@/components/ui/button';
 import { Input as ShadInput } from '@/components/ui/input';
@@ -12,10 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-
-interface PreviewWindowProps {
-  flowJson: string;
-}
+import { Switch } from '@/components/ui/switch'; // For OptIn
 
 interface FlowComponent {
   type: string;
@@ -25,7 +22,8 @@ interface FlowComponent {
   label?: string; 
   style?: string[]; 
   image_id?: string; 
-  data_source?: { id: string; title: string }[]; 
+  data_source?: { id: string; title: string }[];
+  url?: string; // For EmbeddedLink
   // ... other component-specific props
 }
 
@@ -51,7 +49,7 @@ const renderFlowComponent = (component: FlowComponent, index: number): JSX.Eleme
     case 'Headline':
       return <h2 key={key} className="text-xl font-semibold mb-2 px-2 py-1">{component.text}</h2>;
     case 'Text':
-      let textClasses = "text-sm mb-2 px-2 py-1";
+      let textClasses = "text-sm mb-2 px-2 py-1 whitespace-pre-wrap";
       if (component.style?.includes("BOLD")) textClasses += " font-bold";
       if (component.style?.includes("ITALIC")) textClasses += " italic";
       return <p key={key} className={textClasses}>{component.text}</p>;
@@ -136,8 +134,45 @@ const renderFlowComponent = (component: FlowComponent, index: number): JSX.Eleme
           </Select>
         </div>
       );
+    case 'DatePicker':
+      return (
+        <div key={key} className="mb-3 px-2 py-1">
+          {component.label && <Label className="mb-1 block text-sm font-medium text-gray-700">{component.label}</Label>}
+          <div className="flex items-center p-2 border rounded-md border-gray-300 text-gray-500">
+            <CalendarDays size={16} className="mr-2" />
+            <span>{component.label || 'Select a date'} (DatePicker)</span>
+          </div>
+        </div>
+      );
+    case 'OptIn':
+      return (
+        <div key={key} className="flex items-center justify-between mb-3 px-2 py-2 border rounded-md border-gray-200 bg-gray-50">
+          {component.label && <Label htmlFor={`optin-${component.name}`} className="text-sm text-gray-700">{component.label}</Label>}
+          <Switch id={`optin-${component.name}`} name={component.name} disabled />
+        </div>
+      );
+    case 'EmbeddedLink':
+      return (
+        <div key={key} className="mb-2 px-2 py-1">
+          <a
+            href={component.url || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            {component.text || component.url || 'Link'}
+          </a>
+        </div>
+      );
     case 'Footer':
         return <p key={key} className="text-xs text-muted-foreground text-center mt-4 mb-2 px-2 py-1">{component.text}</p>;
+    case 'ScreenConfirmation':
+        return (
+            <div key={key} className="p-3 my-2 border border-dashed rounded bg-green-50 text-green-700 text-xs mx-2 flex items-center gap-2">
+                <ShieldQuestion size={16} />
+                <span>{component.label || 'Screen Confirmation Area'}</span>
+            </div>
+        );
     default:
       return (
         <div key={key} className="p-2 my-1 border border-dashed rounded bg-amber-50 text-amber-700 text-xs mx-2">
@@ -196,7 +231,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         </div>
 
         <div
-          className="flex-grow p-3 overflow-y-auto space-y-2 bg-repeat"
+          className="flex-grow p-3 overflow-y-auto space-y-1 bg-repeat"
           style={{ backgroundImage: "url('https://placehold.co/10x10.png/E5DDD5/E5DDD5?text=_')" }}
           data-ai-hint="chat background pattern"
         >
@@ -212,7 +247,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           </div>
 
           <Card className="bg-white shadow-lg rounded-lg mx-auto max-w-sm my-2 overflow-hidden">
-            <CardContent className="p-0">
+            <CardContent className="p-0 space-y-1"> {/* Added space-y-1 for better component spacing */}
               {errorMessage && (
                 <div className="p-4 text-center text-red-700 bg-red-100">
                   <p className="font-medium">Preview Error</p>
@@ -257,5 +292,3 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     </div>
   );
 };
-
-    
