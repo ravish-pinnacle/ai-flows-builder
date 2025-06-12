@@ -57,7 +57,7 @@ The flow should include:
   - Footer (with "type": "Footer", "text": "Footer Text")
   - Headline (with "type": "Headline", "text": "Headline Text")
   - ScreenConfirmation (with "type": "ScreenConfirmation", "name": "confirmation_name", "label": "Confirmation Details")
-- For CheckboxGroup, RadioButtonGroup, and Dropdown components, ensure each item in the "data_source" array is an object containing both an "id" (string) and a "title" (string) property.
+- **CRITICAL for \`data_source\`**: For CheckboxGroup, RadioButtonGroup, and Dropdown components, EACH item in their "data_source" array MUST be an object. This object MUST contain BOTH an "id" (a unique string identifier) AND a "title" (a user-visible string for display). Do NOT omit the "title". For example: \`[{"id": "option_1", "title": "User Friendly Option 1"}, {"id": "option_2", "title": "User Friendly Option 2"}]\`. The "title" is what the user sees.
 - Define "actions" for navigation (e.g., "type": "navigate", "screen_id": "next_screen_id") or data submission (e.g., "type": "data_exchange", "flow_exchange_data": {...}, "success_action": {...}, "error_action": {...}).
 
 Ensure the JSON structure is valid and adheres to WhatsApp Flow specifications for version 7.1. Focus on creating a functional and well-structured flow based on the user's prompt. Pay close attention to correct JSON syntax, especially for nesting arrays and objects, and ensure there are no trailing commas or extraneous closing brackets. Verify that all required properties for each component type are present as per the documentation.`,
