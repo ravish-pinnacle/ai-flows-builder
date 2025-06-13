@@ -339,7 +339,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           {/* Action Sheet Content */}
           <SheetContent
             side="bottom"
-            className="w-[360px] h-[70%]!important max-h-[70%] fixed!important left-[50%] bottom-0 translate-x-[-50%]_!important rounded-t-[20px] p-0 flex flex-col mx-auto shadow-2xl border-t-4 border-black bg-background"
+            className="w-[360px] h-auto max-h-[520px] fixed left-1/2 bottom-0 translate-x-[-50%] rounded-t-[20px] p-0 flex flex-col shadow-2xl border-t-4 border-black bg-background"
             onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
           >
             <SheetHeader className="p-4 border-b bg-muted rounded-t-[18px]">

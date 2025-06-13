@@ -65,7 +65,7 @@ DO NOT use non-standard components like 'TextCaption', 'TextBody', or 'RichText'
 - For lists, simulate with multiple "Text" components, each potentially prefixed with a bullet or number.
 - For hyperlinks, use "EmbeddedLink".
 
-**CRITICAL for \`data_source\`**: For CheckboxGroup, RadioButtonGroup, and Dropdown components, EACH item in their "data_source" array MUST be an object. This object MUST contain BOTH an "id" (a unique string identifier) AND a "title" (a user-visible string for display). Do NOT omit the "title". For example: \`[{"id": "option_1", "title": "User Friendly Option 1"}, {"id": "option_2", "title": "User Friendly Option 2"}]\`. The "title" is what the user sees.
+**CRITICAL for \`data_source\`**: For CheckboxGroup, RadioButtonGroup, and Dropdown components, EACH item in their "data_source" array MUST be an object. This object MUST contain BOTH an "id" (a unique string identifier, e.g., "option_1") AND a "title" (a user-visible string for display, e.g., "User Friendly Option 1"). THE "title" PROPERTY IS MANDATORY AND MUST NOT BE OMITTED. The "title" is what the user sees in the UI. If the prompt does not provide a clear display title for an item in \`data_source\`, use its "id" value as the "title" (e.g., \`{"id": "option_A", "title": "option_A"}\`) rather than omitting "title". Example: \`"data_source": [{"id": "pizza_size_small", "title": "Small Pizza"}, {"id": "generic_choice", "title": "generic_choice"}]\`. Do NOT generate items with only an "id" or items like \`[{"id":"order_pizza"}]\`; they MUST have a "title".
 
 Define "actions" ONLY for "Button" components (for navigation or data submission) or as part of "data_exchange" (success_action, error_action).
 - Navigation actions: ("type": "navigate", "screen_id": "next_screen_id")
@@ -85,4 +85,3 @@ const generateFlowFromTextPromptFlow = ai.defineFlow(
     return output!;
   }
 );
-
