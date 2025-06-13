@@ -61,7 +61,8 @@ DO NOT use non-standard components like 'TextCaption', 'TextBody', or 'RichText'
 - For multi-paragraph text, use multiple "Text" components.
 - For headings, use "Headline" or "Text" with "BOLD" style.
 - For images, use "image_id": "placeholder_image.png" and try to infer a sensible label.
-- For \`data_source\` in CheckboxGroup, RadioButtonGroup, and Dropdown, EACH item MUST have BOTH an "id" (unique string) AND a "title" (user-visible string).
+
+**CRITICAL for \`data_source\`**: For CheckboxGroup, RadioButtonGroup, and Dropdown components, EACH item in their "data_source" array MUST be an object. This object MUST contain BOTH an "id" (a unique string identifier) AND a "title" (a user-visible string for display). Do NOT omit the "title". For example: \`[{"id": "option_1", "title": "User Friendly Option 1"}, {"id": "option_2", "title": "User Friendly Option 2"}]\`. The "title" is what the user sees.
 
 If the website page is long or complex, consider splitting it into multiple screens in the WhatsApp flow.
 Define "actions" ONLY for "Button" components.
