@@ -22,6 +22,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetClose,
+  SheetPortal,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
@@ -355,34 +356,33 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
                <Send size={20} />
             </div>
           </div>
-
-          {/* Action Sheet Content */}
-          <SheetContent
-            side="bottom"
-            className="h-auto max-h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl border-t-4 border-black bg-background"
-            onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
-            container={phoneRef.current}
-          >
-            <SheetHeader className="p-4 border-b bg-muted rounded-t-[18px] flex-shrink-0">
-              <SheetTitle className="text-base font-semibold">{currentScreen?.id || 'Interactive Form'}</SheetTitle>
-              <SheetDescription className="text-xs">
-                {parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
-              </SheetDescription>
-              <SheetClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
-            </SheetHeader>
-            <ScrollArea className="flex-1 bg-background min-h-0">
-              <div className="p-4 space-y-3">
-                {currentScreen?.layout?.children?.map((component, index) =>
-                  renderFlowComponent(component, index, toast)
-                )}
-                {currentScreen && (!currentScreen.layout?.children || currentScreen.layout.children.length === 0) && (
-                  <div className="p-4 text-center text-gray-500">
-                    <p>This screen has no components.</p>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </SheetContent>
+          <SheetPortal container={phoneRef.current}>
+            <SheetContent
+              side="bottom"
+              className="h-auto max-h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl border-t-4 border-black bg-background"
+              onOpenAutoFocus={(e) => e.preventDefault()} 
+            >
+              <SheetHeader className="p-4 border-b bg-muted rounded-t-[18px] flex-shrink-0">
+                <SheetTitle className="text-base font-semibold">{currentScreen?.id || 'Interactive Form'}</SheetTitle>
+                <SheetDescription className="text-xs">
+                  {parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
+                </SheetDescription>
+                <SheetClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
+              </SheetHeader>
+              <ScrollArea className="flex-1 h-0 min-h-0">
+                <div className="p-4 space-y-3">
+                  {currentScreen?.layout?.children?.map((component, index) =>
+                    renderFlowComponent(component, index, toast)
+                  )}
+                  {currentScreen && (!currentScreen.layout?.children || currentScreen.layout.children.length === 0) && (
+                    <div className="p-4 text-center text-gray-500">
+                      <p>This screen has no components.</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </SheetPortal>
         </div>
       </Sheet>
     </div>
