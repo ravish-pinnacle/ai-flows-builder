@@ -22,6 +22,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetClose,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 
@@ -58,7 +59,7 @@ interface PreviewWindowProps {
   flowJson: string;
 }
 
-const renderFlowComponent = (component: FlowComponent, index: number, showToast: (options: { title: string, description: string }) => void): JSX.Element | null => {
+const renderFlowComponent = (component: FlowComponent, index: number, showToast: (options: { title: string, description: string, variant?: 'default' | 'destructive' }) => void): JSX.Element | null => {
   const key = component.id || `${component.type}-${index}`;
 
   switch (component.type) {
@@ -296,7 +297,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
 
           {/* Chat Area */}
           <ScrollArea
-            className="flex-grow p-3 space-y-1 bg-repeat"
+            className="flex-grow p-3 bg-repeat"
             style={{ backgroundImage: "url('https://placehold.co/10x10.png/E5DDD5/E5DDD5?text=_')" }}
             data-ai-hint="chat background pattern"
           >
@@ -370,7 +371,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               <SheetClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
             </SheetHeader>
             <ScrollArea className="flex-grow bg-background min-h-0">
-              <div className="space-y-3 p-4">
+              <div className="p-4 space-y-3">
                 {currentScreen?.layout?.children?.map((component, index) =>
                   renderFlowComponent(component, index, toast)
                 )}
