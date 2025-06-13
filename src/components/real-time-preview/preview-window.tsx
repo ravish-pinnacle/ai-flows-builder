@@ -359,7 +359,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           {/* Action Sheet Content */}
           <SheetContent
             side="bottom"
-            className="h-auto max-h-[520px] rounded-t-[20px] p-0 flex flex-col shadow-2xl border-t-4 border-black bg-background"
+            className="h-auto max-h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl border-t-4 border-black bg-background"
             onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
             container={phoneRef.current}
           >
