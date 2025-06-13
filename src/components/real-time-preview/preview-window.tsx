@@ -363,14 +363,14 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
             container={phoneRef.current}
           >
-            <SheetHeader className="p-4 border-b bg-muted rounded-t-[18px]">
+            <SheetHeader className="p-4 border-b bg-muted rounded-t-[18px] flex-shrink-0">
               <SheetTitle className="text-base font-semibold">{currentScreen?.id || 'Interactive Form'}</SheetTitle>
               <SheetDescription className="text-xs">
                 {parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
               </SheetDescription>
               <SheetClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
             </SheetHeader>
-            <ScrollArea className="flex-grow bg-background min-h-0">
+            <ScrollArea className="flex-1 bg-background min-h-0">
               <div className="p-4 space-y-3">
                 {currentScreen?.layout?.children?.map((component, index) =>
                   renderFlowComponent(component, index, toast)
