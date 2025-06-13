@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { FC } from 'react';
@@ -22,8 +23,17 @@ import {
   SheetTitle,
   SheetClose,
   SheetPortal,
+  SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
+interface FlowAction {
+  id?: string; // Optional because inline actions in Footers don't have IDs that link to a root array.
+  type: string;
+  screen_id?: string; // For navigate type
+  // ... other action properties like flow_exchange_data, success_action, error_action for data_exchange
+}
 
 interface FlowComponent {
   type: string;
@@ -36,15 +46,10 @@ interface FlowComponent {
   data_source?: { id: string; title: string }[];
   url?: string; // For EmbeddedLink
   action_id?: string; // For Button
+  action?: FlowAction; // For inline actions like in Footer
   // ... other component-specific props
 }
 
-interface FlowAction {
-  id: string;
-  type: string;
-  screen_id?: string; // For navigate type
-  // ... other action properties
-}
 
 interface FlowScreen {
   id: string;
@@ -58,7 +63,7 @@ interface FlowScreen {
 interface ParsedFlow {
   version: string;
   screens: FlowScreen[];
-  actions?: FlowAction[];
+  actions?: FlowAction[]; // Root level actions array
   // ... other flow props
 }
 
@@ -77,7 +82,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   const [navigationHistory, setNavigationHistory] = useState<string[]>([]);
 
   useEffect(() => {
-    setNavigationHistory([]); // Reset history on any flowJson change
+    setNavigationHistory([]); 
     if (flowJson) {
       try {
         const newParsedFlow: ParsedFlow = JSON.parse(flowJson);
@@ -150,7 +155,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         setActiveScreenId(action.screen_id);
         toast({
           title: "Navigation (Preview)",
-          description: `Navigated to screen: ${action.screen_id}`,
+          description: `Button navigated to screen: ${action.screen_id}`,
         });
       } else {
         toast({
@@ -167,10 +172,55 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     }
   };
 
+  const handleFooterAction = (component: FlowComponent) => {
+    if (!component.action) {
+      toast({
+        title: "Footer Action Issue (Preview)",
+        description: `Footer "${component.text}" has no inline action defined.`,
+        variant: "default",
+      });
+      return;
+    }
+
+    const action = component.action as FlowAction; 
+
+    if (action.type === "navigate" && action.screen_id) {
+      const targetScreen = parsedFlow?.screens.find(s => s.id === action.screen_id);
+      if (targetScreen) {
+        if (activeScreenId) {
+          setNavigationHistory(prevHistory => [...prevHistory, activeScreenId]);
+        }
+        setActiveScreenId(action.screen_id);
+        toast({
+          title: "Navigation (Preview)",
+          description: `Footer navigated to screen: ${action.screen_id}`,
+        });
+      } else {
+        toast({
+          title: "Navigation Error (Preview)",
+          description: `Footer action wants to navigate to screen ID "${action.screen_id}", but this screen was not found.`,
+          variant: "destructive",
+        });
+      }
+    } else if (action.type === "data_exchange" || action.type === "complete") {
+      toast({
+        title: "Action Triggered (Preview)",
+        description: `Footer: "${component.text}", Action Type: "${action.type}". This action type is not fully simulated for navigation in preview.`,
+      });
+    } else {
+      toast({
+        title: "Unknown Footer Action (Preview)",
+        description: `Footer "${component.text}" has an unknown action type: "${action.type}".`,
+        variant: "default",
+      });
+    }
+  };
+
+
   const handleGoBack = () => {
     if (navigationHistory.length > 0) {
       const previousScreenId = navigationHistory[navigationHistory.length - 1];
-      setNavigationHistory(prevHistory => prevHistory.slice(0, -1)); // Remove last item
+      setNavigationHistory(prevHistory => prevHistory.slice(0, -1)); 
       setActiveScreenId(previousScreenId);
       toast({
         title: "Navigation (Preview)",
@@ -306,8 +356,27 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             </a>
           </div>
         );
-      case 'Footer':
-          return <p key={key} className="text-xs text-muted-foreground text-center mt-4 mb-2 px-2 py-1">{component.text}</p>;
+      case 'Footer': {
+        const hasAction = component.action && component.action.type;
+        const footerClasses = cn(
+          "text-center mt-auto mb-2 mx-2 rounded-md py-3 px-4", // Common styling, mt-auto to push to bottom
+          hasAction
+            ? "bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer font-semibold text-sm" // Button-like
+            : "text-xs text-muted-foreground" // Standard muted footer text
+        );
+        return (
+          <div
+            key={key}
+            className={footerClasses}
+            onClick={hasAction ? () => handleFooterAction(component) : undefined}
+            role={hasAction ? "button" : undefined}
+            tabIndex={hasAction ? 0 : undefined}
+            onKeyDown={hasAction ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFooterAction(component); } } : undefined}
+          >
+            {component.text}
+          </div>
+        );
+      }
       case 'ScreenConfirmation':
           return (
               <div key={key} className="p-3 my-3 border border-dashed rounded bg-green-50 text-green-700 text-xs mx-2 flex items-center gap-2">
@@ -341,13 +410,15 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         </p>
       </CardContent>
       <CardFooter className="p-3 border-t">
-        <ShadButton
-          className="w-full bg-green-600 hover:bg-green-700 text-white"
-          onClick={() => setIsSheetOpen(true)}
-          disabled={!currentScreen || !!errorMessage}
-        >
-          Open Interactive Form
-        </ShadButton>
+        <SheetTrigger asChild>
+          <ShadButton
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => setIsSheetOpen(true)}
+            disabled={!currentScreen || !!errorMessage}
+          >
+            Open Interactive Form
+          </ShadButton>
+        </SheetTrigger>
       </CardFooter>
     </Card>
   );
@@ -386,7 +457,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
 
           {/* Chat Area */}
           <ScrollArea
-            className="flex-1 p-3 bg-repeat min-h-0"
+            className="flex-1 p-3 bg-repeat min-h-0" // min-h-0 is important for flex + scroll
             style={{ backgroundImage: "url('https://placehold.co/10x10.png/E5DDD5/E5DDD5?text=_')" }}
             data-ai-hint="chat background pattern"
           >
@@ -456,7 +527,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
                        <ArrowLeft size={18} />
                     </ShadButton>
                   )}
-                  <div className={navigationHistory.length === 0 ? "pl-8 sm:pl-0" : ""}> {/* Add padding if no back button to align title */}
+                  <div className={navigationHistory.length === 0 ? "pl-8 sm:pl-0" : ""}> 
                     <SheetTitle className="text-base font-semibold text-left">{currentScreen?.id || 'Interactive Form'}</SheetTitle>
                     <SheetDescription className="text-xs text-left">
                       {parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
