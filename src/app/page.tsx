@@ -7,6 +7,7 @@ import { FlowCanvas } from "@/components/flow-designer/flow-canvas";
 import { PreviewWindow } from "@/components/real-time-preview/preview-window";
 import { VariableManager } from "@/components/variable-management/variable-manager";
 import { AIGenerator } from "@/components/ai-tools/ai-generator";
+import { ScreenshotToFlowGenerator } from "@/components/ai-tools/screenshot-to-flow-generator";
 import { AIOptimizer } from "@/components/ai-tools/ai-optimizer";
 import { FlowImporterExporter } from "@/components/flow-io/flow-importer-exporter";
 import {
@@ -38,7 +39,7 @@ export default function FlowForgePage() {
         <ResizablePanel defaultSize={30} minSize={20} maxSize={40} className="flex flex-col">
           <ScrollArea className="h-full p-4">
             <h2 className="text-xl font-semibold mb-4 font-headline">Tools</h2>
-            <Accordion type="multiple" collapsible className="w-full space-y-2" defaultValue={["components", "ai-generator"]}>
+            <Accordion type="multiple" collapsible className="w-full space-y-2" defaultValue={["components", "ai-generator", "screenshot-to-flow"]}>
               <AccordionItem value="components">
                 <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">Component Library</AccordionTrigger>
                 <AccordionContent className="pt-1">
@@ -55,6 +56,12 @@ export default function FlowForgePage() {
                 <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">AI Flow Generator</AccordionTrigger>
                 <AccordionContent className="pt-1">
                   <AIGenerator onFlowGenerated={handleFlowUpdate} />
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="screenshot-to-flow">
+                <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">Screenshot to Flow (Experimental)</AccordionTrigger>
+                <AccordionContent className="pt-1">
+                  <ScreenshotToFlowGenerator onFlowGenerated={handleFlowUpdate} />
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="ai-optimizer">
