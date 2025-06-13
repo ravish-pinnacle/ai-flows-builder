@@ -251,7 +251,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   return (
     <div className="flex items-center justify-center h-full bg-muted/30 p-4 select-none">
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <div 
+        <div
           ref={phoneRef}
           className="w-[360px] h-[740px] bg-[#E5DDD5] rounded-[30px] border-[10px] border-black shadow-2xl overflow-hidden flex flex-col relative"
         >
@@ -355,15 +355,17 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               </SheetDescription>
               <SheetClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
             </SheetHeader>
-            <ScrollArea className="flex-grow p-4 space-y-3 bg-background">
-              {currentScreen?.layout?.children?.map((component, index) =>
-                renderFlowComponent(component, index)
-              )}
-              {currentScreen && (!currentScreen.layout?.children || currentScreen.layout.children.length === 0) && (
-                <div className="p-4 text-center text-gray-500">
-                  <p>This screen has no components.</p>
-                </div>
-              )}
+            <ScrollArea className="flex-grow p-4 bg-background min-h-0">
+              <div className="space-y-3">
+                {currentScreen?.layout?.children?.map((component, index) =>
+                  renderFlowComponent(component, index)
+                )}
+                {currentScreen && (!currentScreen.layout?.children || currentScreen.layout.children.length === 0) && (
+                  <div className="p-4 text-center text-gray-500">
+                    <p>This screen has no components.</p>
+                  </div>
+                )}
+              </div>
             </ScrollArea>
           </SheetContent>
         </div>
