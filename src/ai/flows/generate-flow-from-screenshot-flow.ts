@@ -42,6 +42,7 @@ The flow MUST include:
 - An array of "screens". Each screen MUST have an "id" (e.g., "SCREEN_1", "SCREEN_2").
 - Screens SHOULD contain "layout" and "data" sections where appropriate.
 - Layouts MUST define "type" (e.g., "SingleColumnLayout") and "children" (an array of components).
+- Use 'Headline' components or a prominent 'Text' component (e.g., with BOLD style) at the beginning of a screen's layout.children array to serve as a visual title for the screen.
 
 STRICTLY use ONLY the following supported v7.1 components:
   - Text (with "type": "Text", "text": "your_string_content", and optionally "style": ["BOLD", "ITALIC"])
@@ -55,8 +56,21 @@ STRICTLY use ONLY the following supported v7.1 components:
   - DatePicker (with "type": "DatePicker", "name": "date_picker_name", "label": "Select a Date")
   - OptIn (with "type": "OptIn", "name": "opt_in_name", "label": "Agree to terms")
   - EmbeddedLink (with "type": "EmbeddedLink", "url": "your_url", "text": "Link Text")
-  - Footer (with "type": "Footer", "text": "Footer Text")
-  - Headline (with "type": "Headline", "text": "Headline Text")
+  - Footer (with "type": "Footer", "text": "Footer Text".
+      Footers can also have an INLINE "action" property for navigation or data exchange.
+      This "action" is defined DIRECTLY IN THE FOOTER object itself, NOT via an action_id linking to the root "actions" array.
+      Example of a Footer with a navigation action:
+      {
+        "type": "Footer",
+        "text": "Proceed to next step",
+        "action": {
+          "type": "navigate",
+          "screen_id": "NEXT_SCREEN_ID"
+        }
+      }
+      DO NOT place a separate "Button" component inside a Footer to trigger its main action. The main action of a Footer is defined by its own "action" property.
+    )
+  - Headline (with "type": "Headline", "text": "Headline Text". Use this for large screen headings, often as the first child in a screen's layout.)
   - ScreenConfirmation (with "type": "ScreenConfirmation", "name": "confirmation_name", "label": "Confirmation Details")
 
 DO NOT use non-standard components like 'TextCaption', 'TextBody', or 'RichText'.
@@ -66,7 +80,7 @@ DO NOT use non-standard components like 'TextCaption', 'TextBody', or 'RichText'
 
 **CRITICAL for \`data_source\`**: For CheckboxGroup, RadioButtonGroup, and Dropdown components, EACH item in their "data_source" array MUST be an object. This object MUST contain BOTH an "id" (a unique string identifier, e.g., "option_1") AND a "title" (a user-visible string for display, e.g., "User Friendly Option 1"). THE "title" PROPERTY IS MANDATORY AND MUST NOT BE OMITTED. The "title" is what the user sees in the UI. If you cannot infer a descriptive title from the screenshot for an item in \`data_source\`, use its "id" value as the "title" (e.g., \`{"id": "opt_1", "title": "opt_1"}\`) rather than omitting "title". Example: \`"data_source": [{"id": "color_red", "title": "Red"}, {"id": "opt_generic", "title": "opt_generic"}]\`. Do NOT generate items with only an "id"; they MUST have a "title".
 
-**CRITICAL for Actions**:
+**CRITICAL for Actions (for Button components)**:
 Buttons trigger actions via an "action_id" property (e.g., \`"action_id": "SUBMIT_FORM"\`). This "action_id" MUST correspond to an action defined in a **top-level "actions" array** in the root of the JSON.
 Example:
 A button component might have: \`"action_id": "GO_TO_NEXT_SCREEN"\`.
@@ -100,7 +114,7 @@ The root of your JSON must then contain an "actions" array like this:
   ]
 }
 \`\`\`
-Supported action types to define in the top-level "actions" array:
+Supported action types to define in the top-level "actions" array (for Buttons):
 - Navigation: \`{ "id": "your_action_id", "type": "navigate", "screen_id": "target_screen_id" }\`
 - Data Submission (data_exchange): \`{ "id": "your_action_id", "type": "data_exchange", "flow_exchange_data": { ...variables... }, "success_action": { "type": "navigate", "screen_id": "success_screen_id" }, "error_action": { "type": "navigate", "screen_id": "error_screen_id" } }\` (Note: success_action and error_action here are nested actions).
 - Flow Completion (complete): \`{ "id": "your_action_id", "type": "complete", "flow_exchange_data": { ...variables... } }\`
