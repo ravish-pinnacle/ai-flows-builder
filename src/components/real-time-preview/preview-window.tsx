@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC } from 'react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send } from 'lucide-react';
 import Image from 'next/image';
 import { Button as ShadButton } from '@/components/ui/button';
@@ -202,6 +202,7 @@ const renderFlowComponent = (component: FlowComponent, index: number): JSX.Eleme
 
 export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const phoneRef = useRef<HTMLDivElement>(null);
   let parsedFlow: ParsedFlow | null = null;
   let currentScreen: FlowScreen | null = null;
   let errorMessage: string | null = null;
@@ -238,6 +239,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           <ShadButton
             className="w-full bg-green-600 hover:bg-green-700 text-white"
             onClick={() => setIsSheetOpen(true)}
+            disabled={!currentScreen} // Disable if no screen to show
           >
             Open Interactive Form
           </ShadButton>
@@ -249,7 +251,10 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   return (
     <div className="flex items-center justify-center h-full bg-muted/30 p-4 select-none">
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <div className="w-[360px] h-[740px] bg-[#E5DDD5] rounded-[30px] border-[10px] border-black shadow-2xl overflow-hidden flex flex-col relative">
+        <div 
+          ref={phoneRef}
+          className="w-[360px] h-[740px] bg-[#E5DDD5] rounded-[30px] border-[10px] border-black shadow-2xl overflow-hidden flex flex-col relative"
+        >
           {/* Phone Notch and Status Bar */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150px] h-[25px] bg-black rounded-b-xl z-20 flex items-center justify-center px-2">
               <div className="w-2 h-2 bg-neutral-700 rounded-full mr-2"></div>
@@ -265,7 +270,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
 
           {/* WhatsApp Header */}
           <div className="bg-[#075E54] text-white p-3 flex items-center gap-3 shadow-sm sticky top-0 z-10">
-            <ArrowLeft size={20} className="cursor-pointer opacity-80 hover:opacity-100" />
+            <ArrowLeft size={20} className="cursor-pointer opacity-80 hover:opacity-100" onClick={() => setIsSheetOpen(false)} />
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
               <MessageCircle size={18} className="text-[#075E54]" />
             </div>
@@ -339,8 +344,9 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           {/* Action Sheet Content */}
           <SheetContent
             side="bottom"
-            className="w-[360px] h-auto max-h-[520px] fixed left-1/2 bottom-0 translate-x-[-50%] rounded-t-[20px] p-0 flex flex-col shadow-2xl border-t-4 border-black bg-background"
+            className="h-auto max-h-[520px] rounded-t-[20px] p-0 flex flex-col shadow-2xl border-t-4 border-black bg-background"
             onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
+            container={phoneRef.current}
           >
             <SheetHeader className="p-4 border-b bg-muted rounded-t-[18px]">
               <SheetTitle className="text-base font-semibold">{currentScreen?.id || 'Interactive Form'}</SheetTitle>
@@ -365,3 +371,4 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     </div>
   );
 };
+
