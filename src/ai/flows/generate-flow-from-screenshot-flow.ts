@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview Generates a WhatsApp flow from a website screenshot.
+ * @fileOverview Generates a WhatsApp flow from a website screenshot and an optional text prompt.
  *
- * - generateFlowFromScreenshotFlow - A function that generates a WhatsApp flow from a screenshot.
+ * - generateFlowFromScreenshotFlow - A function that generates a WhatsApp flow.
  * - GenerateFlowFromScreenshotInput - The input type for the generateFlowFromScreenshotFlow function.
  * - GenerateFlowFromScreenshotOutput - The return type for the generateFlowFromScreenshotFlow function.
  */
@@ -13,11 +13,12 @@ import {z} from 'genkit';
 
 const GenerateFlowFromScreenshotInputSchema = z.object({
   screenshotDataUri: z.string().describe("A website screenshot as a data URI. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
+  additionalPrompt: z.string().optional().describe("Optional additional text instructions to guide the flow generation."),
 });
 export type GenerateFlowFromScreenshotInput = z.infer<typeof GenerateFlowFromScreenshotInputSchema>;
 
 const GenerateFlowFromScreenshotOutputSchema = z.object({
-  flow: z.string().describe('The generated WhatsApp flow in JSON format, based on the screenshot.'),
+  flow: z.string().describe('The generated WhatsApp flow in JSON format, based on the screenshot and text prompt.'),
 });
 export type GenerateFlowFromScreenshotOutput = z.infer<typeof GenerateFlowFromScreenshotOutputSchema>;
 
@@ -33,7 +34,7 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateFlowFromScreenshotOutputSchema},
   model: 'googleai/gemini-2.0-flash-exp',
   prompt: `You are an expert UI/UX designer specializing in converting website layouts into WhatsApp Flows (version 7.1).
-Analyze the provided website screenshot. Identify key UI elements like headers, text blocks, input fields, buttons, images, lists, etc.
+Analyze the provided website screenshot and any additional text instructions. Identify key UI elements like headers, text blocks, input fields, buttons, images, lists, etc.
 Translate these elements into a functional WhatsApp Flow JSON structure.
 
 The flow MUST include:
@@ -69,6 +70,12 @@ If the website page is long or complex, consider splitting it into multiple scre
 Define "actions" ONLY for "Button" components.
 Ensure the JSON structure is valid and strictly adheres to WhatsApp Flow specifications for version 7.1.
 Pay close attention to correct JSON syntax, especially for nesting arrays and objects, and ensure there are no trailing commas.
+
+{{#if additionalPrompt}}
+Additional Instructions from user:
+{{{additionalPrompt}}}
+Use these instructions to further refine the generated flow.
+{{/if}}
 
 Input Screenshot:
 {{media url=screenshotDataUri}}

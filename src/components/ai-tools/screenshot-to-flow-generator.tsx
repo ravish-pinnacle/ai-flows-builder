@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, ImageUp, Wand2 } from "lucide-react";
+import { Loader2, ImageUp, Wand2, Pilcrow } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateFlowFromScreenshotFlow, type GenerateFlowFromScreenshotInput } from "@/ai/flows/generate-flow-from-screenshot-flow";
 
@@ -17,6 +18,7 @@ interface ScreenshotToFlowGeneratorProps {
 export function ScreenshotToFlowGenerator({ onFlowGenerated }: ScreenshotToFlowGeneratorProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [additionalPrompt, setAdditionalPrompt] = useState("");
   const [generatedFlow, setGeneratedFlow] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -56,7 +58,10 @@ export function ScreenshotToFlowGenerator({ onFlowGenerated }: ScreenshotToFlowG
     reader.onloadend = async () => {
       const screenshotDataUri = reader.result as string;
       try {
-        const input: GenerateFlowFromScreenshotInput = { screenshotDataUri };
+        const input: GenerateFlowFromScreenshotInput = { 
+          screenshotDataUri,
+          additionalPrompt: additionalPrompt.trim() ? additionalPrompt.trim() : undefined,
+        };
         const result = await generateFlowFromScreenshotFlow(input);
         setGeneratedFlow(result.flow);
         onFlowGenerated(result.flow);
@@ -83,7 +88,7 @@ export function ScreenshotToFlowGenerator({ onFlowGenerated }: ScreenshotToFlowG
           <ImageUp className="h-5 w-5 text-primary" />
           <span>Screenshot to Flow (Experimental)</span>
         </CardTitle>
-        <CardDescription>Upload a website screenshot to generate a WhatsApp flow.</CardDescription>
+        <CardDescription>Upload a website screenshot and optionally add text instructions to generate a WhatsApp flow.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,6 +107,17 @@ export function ScreenshotToFlowGenerator({ onFlowGenerated }: ScreenshotToFlowG
               <img src={previewUrl} alt="Screenshot preview" className="max-w-full h-auto rounded-md border" style={{ maxHeight: '200px' }} />
             </div>
           )}
+          <div className="pt-2">
+            <Label htmlFor="additionalPrompt">Additional Instructions (Optional)</Label>
+            <Textarea
+              id="additionalPrompt"
+              value={additionalPrompt}
+              onChange={(e) => setAdditionalPrompt(e.target.value)}
+              placeholder="e.g., Focus on the login form. The primary action button should submit the form."
+              rows={3}
+              className="mt-1"
+            />
+          </div>
           <Button type="submit" disabled={isLoading || !selectedFile} className="w-full">
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
