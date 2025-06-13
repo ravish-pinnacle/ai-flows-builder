@@ -2,7 +2,7 @@
 "use client";
 
 import type { FC } from 'react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send } from 'lucide-react';
 import Image from 'next/image';
 import { Button as ShadButton } from '@/components/ui/button';
@@ -21,9 +21,9 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
 
 interface FlowComponent {
   type: string;
@@ -35,6 +35,7 @@ interface FlowComponent {
   image_id?: string;
   data_source?: { id: string; title: string }[];
   url?: string; // For EmbeddedLink
+  action_id?: string; // For Button
   // ... other component-specific props
 }
 
@@ -57,7 +58,7 @@ interface PreviewWindowProps {
   flowJson: string;
 }
 
-const renderFlowComponent = (component: FlowComponent, index: number): JSX.Element | null => {
+const renderFlowComponent = (component: FlowComponent, index: number, showToast: (options: { title: string, description: string }) => void): JSX.Element | null => {
   const key = component.id || `${component.type}-${index}`;
 
   switch (component.type) {
@@ -86,7 +87,18 @@ const renderFlowComponent = (component: FlowComponent, index: number): JSX.Eleme
     case 'Button':
       return (
         <div className="px-2 py-2">
-          <ShadButton key={key} variant="default" className="w-full my-1 bg-primary hover:bg-primary/90 text-primary-foreground">
+          <ShadButton
+            key={key}
+            variant="default"
+            className="w-full my-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+            onClick={() => {
+              console.log(`Preview Button clicked: ${component.label}, Action ID: ${component.action_id || 'none'}`);
+              showToast({
+                title: "Button Clicked (Preview)",
+                description: `Label: ${component.label}, Action: ${component.action_id || 'No action_id defined.'}`,
+              });
+            }}
+          >
             {component.label}
           </ShadButton>
         </div>
@@ -203,6 +215,8 @@ const renderFlowComponent = (component: FlowComponent, index: number): JSX.Eleme
 export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const phoneRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  
   let parsedFlow: ParsedFlow | null = null;
   let currentScreen: FlowScreen | null = null;
   let errorMessage: string | null = null;
@@ -355,10 +369,10 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               </SheetDescription>
               <SheetClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
             </SheetHeader>
-            <ScrollArea className="flex-grow p-4 bg-background min-h-0">
-              <div className="space-y-3">
+            <ScrollArea className="flex-grow bg-background min-h-0">
+              <div className="space-y-3 p-4">
                 {currentScreen?.layout?.children?.map((component, index) =>
-                  renderFlowComponent(component, index)
+                  renderFlowComponent(component, index, toast)
                 )}
                 {currentScreen && (!currentScreen.layout?.children || currentScreen.layout.children.length === 0) && (
                   <div className="p-4 text-center text-gray-500">
