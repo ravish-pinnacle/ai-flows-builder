@@ -39,7 +39,7 @@ export default function FlowForgePage() {
         <ResizablePanel defaultSize={30} minSize={20} maxSize={40} className="flex flex-col">
           <ScrollArea className="h-full p-4">
             <h2 className="text-xl font-semibold mb-4 font-headline">Tools</h2>
-            <Accordion type="multiple" collapsible className="w-full space-y-2" defaultValue={["components", "ai-generator", "screenshot-to-flow"]}>
+            <Accordion type="multiple" className="w-full space-y-2" defaultValue={["components", "ai-generator", "screenshot-to-flow"]}>
               <AccordionItem value="components">
                 <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">Component Library</AccordionTrigger>
                 <AccordionContent className="pt-1">
