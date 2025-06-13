@@ -359,7 +359,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           <SheetPortal container={phoneRef.current}>
             <SheetContent
               side="bottom"
-              className="h-full max-h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl border-t-4 border-black bg-background"
+              className="h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl border-t-4 border-black bg-background"
               onOpenAutoFocus={(e) => e.preventDefault()} 
             >
               <SheetHeader className="p-4 border-b bg-muted rounded-t-[18px] flex-shrink-0">
@@ -369,7 +369,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
                 </SheetDescription>
                 <SheetClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
               </SheetHeader>
-              <ScrollArea className="flex-1 h-0 min-h-0">
+              <ScrollArea className="flex-1 min-h-0">
                 <div className="p-4">
                     <div className="space-y-3">
                     {currentScreen?.layout?.children?.map((component, index) =>
