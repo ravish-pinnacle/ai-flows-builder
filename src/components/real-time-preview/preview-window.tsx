@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { FC } from 'react';
@@ -23,7 +22,6 @@ import {
   SheetTitle,
   SheetClose,
   SheetPortal,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 
@@ -76,15 +74,17 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   const [parsedFlow, setParsedFlow] = useState<ParsedFlow | null>(null);
   const [activeScreenId, setActiveScreenId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [navigationHistory, setNavigationHistory] = useState<string[]>([]);
 
   useEffect(() => {
+    setNavigationHistory([]); // Reset history on any flowJson change
     if (flowJson) {
       try {
         const newParsedFlow: ParsedFlow = JSON.parse(flowJson);
         setParsedFlow(newParsedFlow);
         setErrorMessage(null);
         if (newParsedFlow && newParsedFlow.screens && newParsedFlow.screens.length > 0) {
-          setActiveScreenId(newParsedFlow.screens[0].id); // Initialize with the first screen's ID
+          setActiveScreenId(newParsedFlow.screens[0].id);
         } else {
           setActiveScreenId(null);
           if (newParsedFlow && (!newParsedFlow.screens || newParsedFlow.screens.length === 0)) {
@@ -144,6 +144,9 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     if (action.type === "navigate" && action.screen_id) {
       const targetScreen = parsedFlow.screens.find(s => s.id === action.screen_id);
       if (targetScreen) {
+        if (activeScreenId) {
+          setNavigationHistory(prevHistory => [...prevHistory, activeScreenId]);
+        }
         setActiveScreenId(action.screen_id);
         toast({
           title: "Navigation (Preview)",
@@ -160,6 +163,18 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
       toast({
         title: "Action Triggered (Preview)",
         description: `Label: ${component.label}, Action ID: ${actionId}, Type: ${action.type}. (This action type is not fully simulated for navigation in preview).`,
+      });
+    }
+  };
+
+  const handleGoBack = () => {
+    if (navigationHistory.length > 0) {
+      const previousScreenId = navigationHistory[navigationHistory.length - 1];
+      setNavigationHistory(prevHistory => prevHistory.slice(0, -1)); // Remove last item
+      setActiveScreenId(previousScreenId);
+      toast({
+        title: "Navigation (Preview)",
+        description: `Went back to screen: ${previousScreenId}`,
       });
     }
   };
@@ -326,15 +341,13 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         </p>
       </CardContent>
       <CardFooter className="p-3 border-t">
-        <SheetTrigger asChild>
-          <ShadButton
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => setIsSheetOpen(true)}
-            disabled={!currentScreen || !!errorMessage}
-          >
-            Open Interactive Form
-          </ShadButton>
-        </SheetTrigger>
+        <ShadButton
+          className="w-full bg-green-600 hover:bg-green-700 text-white"
+          onClick={() => setIsSheetOpen(true)}
+          disabled={!currentScreen || !!errorMessage}
+        >
+          Open Interactive Form
+        </ShadButton>
       </CardFooter>
     </Card>
   );
@@ -361,7 +374,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
 
           {/* WhatsApp Header */}
           <div className="bg-[#075E54] text-white p-3 flex items-center gap-3 shadow-sm sticky top-0 z-10 flex-shrink-0">
-            <ArrowLeft size={20} className="cursor-pointer opacity-80 hover:opacity-100" onClick={() => setIsSheetOpen(false)} />
+             <ArrowLeft size={20} className="cursor-pointer opacity-80 hover:opacity-100" onClick={() => { setIsSheetOpen(false); setNavigationHistory([]); }} />
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
               <MessageCircle size={18} className="text-[#075E54]" />
             </div>
@@ -373,7 +386,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
 
           {/* Chat Area */}
           <ScrollArea
-            className="flex-1 p-3 bg-repeat min-h-0" // Added min-h-0
+            className="flex-1 p-3 bg-repeat min-h-0"
             style={{ backgroundImage: "url('https://placehold.co/10x10.png/E5DDD5/E5DDD5?text=_')" }}
             data-ai-hint="chat background pattern"
           >
@@ -390,7 +403,6 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               </span>
             </div>
 
-            {/* Content based on flowJson and error state */}
             {errorMessage && (
               <Card className="bg-red-50 border-red-300 shadow-md rounded-lg mx-auto max-w-sm my-2">
                 <CardContent className="p-3 text-center text-red-700">
@@ -416,7 +428,6 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               </div>
             )}
 
-            {/* Interactive Message Card with Trigger */}
             {!errorMessage && currentScreen && (
               <InteractiveMessageCard />
             )}
@@ -435,15 +446,24 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           <SheetPortal container={phoneRef.current}>
             <SheetContent
               side="bottom"
-              className="h-[520px] rounded-t-[20px] p-0 flex flex-col shadow-2xl bg-background"
+              className="h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl bg-background"
               onOpenAutoFocus={(e) => e.preventDefault()} 
             >
-              <SheetHeader className="p-4 border-b flex-shrink-0">
-                <SheetTitle className="text-base font-semibold">{currentScreen?.id || 'Interactive Form'}</SheetTitle>
-                <SheetDescription className="text-xs">
-                  {parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
-                </SheetDescription>
-                <SheetClose className="absolute right-3 top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
+              <SheetHeader className="p-4 border-b flex-shrink-0 flex flex-row items-center justify-between relative">
+                <div className="flex items-center gap-2">
+                  {navigationHistory.length > 0 && (
+                    <ShadButton variant="ghost" size="icon" onClick={handleGoBack} className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900">
+                       <ArrowLeft size={18} />
+                    </ShadButton>
+                  )}
+                  <div className={navigationHistory.length === 0 ? "pl-8 sm:pl-0" : ""}> {/* Add padding if no back button to align title */}
+                    <SheetTitle className="text-base font-semibold text-left">{currentScreen?.id || 'Interactive Form'}</SheetTitle>
+                    <SheetDescription className="text-xs text-left">
+                      {parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
+                    </SheetDescription>
+                  </div>
+                </div>
+                <SheetClose className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
               </SheetHeader>
               <ScrollArea className="flex-1 min-h-0 h-0">
                 <div className="p-4 space-y-3">
