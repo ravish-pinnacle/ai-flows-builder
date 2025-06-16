@@ -28,7 +28,7 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
 
   useEffect(() => {
     try {
-      if (flowJson) {
+      if (flowJson && flowJson.trim() !== "") {
         const parsedFlow = JSON.parse(flowJson);
         setCurrentFlow(parsedFlow);
         // Potentially extract components from imported/generated JSON to populate visual view
@@ -38,10 +38,16 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
         setCurrentFlow(null);
       }
     } catch (error) {
-      console.error("Error parsing flow JSON:", error);
+      console.error("Error parsing flow JSON in FlowCanvas:", error);
       setCurrentFlow(null); // Indicate an error or invalid JSON
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      toast({
+        title: "Invalid Flow JSON",
+        description: `The Flow JSON could not be parsed: ${errorMessage}. Please check the JSON structure.`,
+        variant: "destructive",
+      });
     }
-  }, [flowJson]);
+  }, [flowJson, toast]);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault(); // Necessary to allow dropping
@@ -140,10 +146,14 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
           {JSON.stringify(currentFlow, null, 2)}
         </pre>
       ) : (
-        <div className="text-center py-12">
+         <div className="text-center py-12">
            <Code className="mx-auto h-16 w-16 text-muted-foreground" />
-           <p className="mt-4 text-lg text-muted-foreground">No flow JSON loaded.</p>
-           <p className="text-sm text-muted-foreground">Generate or import a flow to see its raw JSON data.</p>
+           <p className="mt-4 text-lg text-muted-foreground">
+             {flowJson && flowJson.trim() !== "" ? "JSON is invalid or empty." : "No flow JSON loaded."}
+           </p>
+           <p className="text-sm text-muted-foreground">
+            {flowJson && flowJson.trim() !== "" ? "Please check the structure or generate/import a valid flow." : "Generate or import a flow to see its raw JSON data."}
+          </p>
         </div>
       )}
     </div>
