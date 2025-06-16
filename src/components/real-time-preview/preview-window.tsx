@@ -2,8 +2,8 @@
 "use client";
 
 import type { FC } from 'react';
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { Button as ShadButton } from '@/components/ui/button';
 import { Input as ShadInput } from '@/components/ui/input';
@@ -25,45 +25,49 @@ import {
   SheetPortal,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useToast } from "@/hooks/use-toast";
+import { useToast, type Toast as ImportedToastProps } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-interface FlowAction {
-  id?: string; // Optional because inline actions in Footers don't have IDs that link to a root array.
-  type: string;
-  screen_id?: string; // For navigate type
-  // ... other action properties like flow_exchange_data, success_action, error_action for data_exchange
-}
-
+// Updated FlowComponent interface
 interface FlowComponent {
   type: string;
-  id?: string;
-  name?: string;
-  text?: string;
-  label?: string;
-  style?: string[];
-  image_id?: string;
-  data_source?: { id: string; title: string }[];
+  id?: string; // Optional, not always present
+  name?: string; // For form elements
+  text?: string; // For Text, TextBody, TextCaption, etc.
+  label?: string; // For form elements, Button, Footer
+  style?: string[]; // For Text component
+  src?: string; // For Image component
+  image_id?: string; // Kept for potential backward compatibility, but 'src' is primary now
+  "data-source"?: { id: string; title: string }[]; // For CheckboxGroup, RadioButtonGroup, Dropdown
   url?: string; // For EmbeddedLink
-  action_id?: string; // For Button
-  action?: FlowAction; // For inline actions like in Footer
+  "on-click-action"?: { // For Footer actions primarily
+    name: string; // e.g., "navigate", "complete", "data_exchange"
+    next?: { type: string; name: string }; // For navigation
+    payload?: Record<string, any>; // For complete/data_exchange
+  };
+  action_id?: string; // For standalone Button components (if still used)
+  children?: FlowComponent[]; // For Form component
   // ... other component-specific props
 }
 
 
 interface FlowScreen {
   id: string;
+  title?: string; // Human-readable title for the screen
   layout: {
-    type: string;
+    type: string; // e.g., "SingleColumnLayout"
     children: FlowComponent[];
   };
+  terminal?: boolean;
   // ... other screen props
 }
 
 interface ParsedFlow {
   version: string;
+  data_api_version?: string;
+  routing_model?: Record<string, string[]>;
   screens: FlowScreen[];
-  actions?: FlowAction[]; // Root level actions array
+  actions?: Array<{ id: string; type: string; screen_id?: string; /* other action props */ }>; // Root level actions array for standalone Buttons
   // ... other flow props
 }
 
@@ -74,7 +78,11 @@ interface PreviewWindowProps {
 export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const phoneRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  
+  const { toast: originalToast } = useToast();
+  const toast = useCallback((options: ImportedToastProps) => {
+    originalToast(options);
+  }, [originalToast]);
   
   const [parsedFlow, setParsedFlow] = useState<ParsedFlow | null>(null);
   const [activeScreenId, setActiveScreenId] = useState<string | null>(null);
@@ -114,7 +122,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     return parsedFlow.screens.find(screen => screen.id === activeScreenId) || null;
   }, [parsedFlow, activeScreenId]);
 
-  const handleButtonClick = (component: FlowComponent) => {
+  const handleLegacyButtonAction = (component: FlowComponent) => {
     const actionId = component.action_id;
 
     if (!actionId) {
@@ -129,7 +137,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     if (!parsedFlow || !parsedFlow.actions || parsedFlow.actions.length === 0) {
       toast({
         title: "Flow Structure Issue (Preview)",
-        description: `The flow JSON is missing a root 'actions' array, or it's empty. Button actions (like for "${component.label}" with action_id "${actionId}") are defined there and are required for navigation.`,
+        description: `The flow JSON is missing a root 'actions' array, or it's empty. Button actions (like for "${component.label}" with action_id "${actionId}") are defined there and are required for navigation. This flow might be using inline footer actions instead.`,
         variant: "destructive",
       });
       return;
@@ -173,44 +181,51 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   };
 
   const handleFooterAction = (component: FlowComponent) => {
-    if (!component.action) {
+    const actionDetails = component["on-click-action"];
+
+    if (!actionDetails) {
       toast({
         title: "Footer Action Issue (Preview)",
-        description: `Footer "${component.text}" has no inline action defined.`,
+        description: `Footer "${component.label || component.text}" has no 'on-click-action' defined.`,
         variant: "default",
       });
       return;
     }
+    
+    const actionName = actionDetails.name;
+    const nextScreenDetails = actionDetails.next;
 
-    const action = component.action as FlowAction; 
-
-    if (action.type === "navigate" && action.screen_id) {
-      const targetScreen = parsedFlow?.screens.find(s => s.id === action.screen_id);
+    if (actionName === "navigate" && nextScreenDetails?.name) {
+      const targetScreen = parsedFlow?.screens.find(s => s.id === nextScreenDetails.name);
       if (targetScreen) {
         if (activeScreenId) {
           setNavigationHistory(prevHistory => [...prevHistory, activeScreenId]);
         }
-        setActiveScreenId(action.screen_id);
+        setActiveScreenId(nextScreenDetails.name);
         toast({
           title: "Navigation (Preview)",
-          description: `Footer navigated to screen: ${action.screen_id}`,
+          description: `Footer navigated to screen: ${nextScreenDetails.name}`,
         });
       } else {
         toast({
           title: "Navigation Error (Preview)",
-          description: `Footer action wants to navigate to screen ID "${action.screen_id}", but this screen was not found.`,
+          description: `Footer action wants to navigate to screen ID "${nextScreenDetails.name}", but this screen was not found.`,
           variant: "destructive",
         });
       }
-    } else if (action.type === "data_exchange" || action.type === "complete") {
+    } else if (actionName === "complete" || actionName === "data_exchange") {
       toast({
         title: "Action Triggered (Preview)",
-        description: `Footer: "${component.text}", Action Type: "${action.type}". This action type is not fully simulated for navigation in preview.`,
+        description: `Footer: "${component.label || component.text}", Action: "${actionName}". (This action type is simulated as flow completion/data exchange).`,
       });
+       // Potentially close sheet or show a success message for "complete"
+       if (actionName === "complete" && currentScreen?.terminal) {
+        setIsSheetOpen(false); // Example: close sheet on terminal "complete"
+      }
     } else {
       toast({
         title: "Unknown Footer Action (Preview)",
-        description: `Footer "${component.text}" has an unknown action type: "${action.type}".`,
+        description: `Footer "${component.label || component.text}" has an action name "${actionName}" with no clear navigation or completion target.`,
         variant: "default",
       });
     }
@@ -228,24 +243,31 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
       });
     }
   };
-
-  const renderFlowComponent = (component: FlowComponent, index: number): JSX.Element | null => {
-    const key = component.id || `${component.type}-${index}`;
+  
+  const renderInnerComponent = (component: FlowComponent, index: number): JSX.Element | null => {
+    const key = component.id || `${component.type}-${component.name || index}`;
 
     switch (component.type) {
-      case 'Headline':
+      case 'TextHeading':
         return <h2 key={key} className="text-xl font-semibold mb-3 px-2 py-1">{component.text}</h2>;
-      case 'Text':
+      case 'TextSubheading':
+        return <h3 key={key} className="text-lg font-medium mb-2 px-2 py-1">{component.text}</h3>;
+      case 'TextBody':
+        return <p key={key} className="text-sm mb-2 px-2 py-1 whitespace-pre-wrap">{component.text}</p>;
+      case 'TextCaption':
+        return <p key={key} className="text-xs text-gray-500 mb-2 px-2 py-1">{component.text}</p>;
+      case 'Text': // Standard Text (fallback if others not used)
         let textClasses = "text-sm mb-2 px-2 py-1 whitespace-pre-wrap";
         if (component.style?.includes("BOLD")) textClasses += " font-bold";
         if (component.style?.includes("ITALIC")) textClasses += " italic";
         return <p key={key} className={textClasses}>{component.text}</p>;
       case 'Image':
+        const imgSrc = component.src || component.image_id;
         return (
           <div key={key} className="my-3 flex justify-center px-2">
-            {component.image_id && (
+            {imgSrc && (
               <Image
-                src={component.image_id.startsWith('http') ? component.image_id : `https://placehold.co/300x200.png?text=${encodeURIComponent(component.label || component.type || 'Image')}`}
+                src={imgSrc.startsWith('http') || imgSrc.startsWith('data:') ? imgSrc : `https://placehold.co/300x200.png?text=${encodeURIComponent(component.label || component.type || 'Image')}`}
                 alt={component.label || 'Flow Image'}
                 width={300}
                 height={200}
@@ -255,14 +277,14 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             )}
           </div>
         );
-      case 'Button':
+      case 'Button': // Standalone button
         return (
           <div className="px-2 py-2">
             <ShadButton
               key={key}
               variant="default"
               className="w-full my-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={() => handleButtonClick(component)}
+              onClick={() => handleLegacyButtonAction(component)}
             >
               {component.label}
             </ShadButton>
@@ -287,7 +309,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           <div key={key} className="mb-4 px-2 py-1">
             {component.label && <Label className="mb-2 block text-sm font-medium text-gray-700">{component.label}</Label>}
             <div className="space-y-2">
-              {component.data_source?.map((item) => (
+              {component["data-source"]?.map((item) => (
                 <div key={item.id} className="flex items-center space-x-2">
                   <Checkbox id={`${component.name}-${item.id}`} name={component.name} value={item.id} />
                   <Label htmlFor={`${component.name}-${item.id}`} className="text-sm font-normal text-gray-800">{item.title}</Label>
@@ -296,12 +318,12 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             </div>
           </div>
         );
-      case 'RadioButtonGroup':
+      case 'RadioButtonsGroup': // Corrected from RadioButtonGroup
         return (
           <RadioGroup key={key} name={component.name} className="mb-4 px-2 py-1">
             {component.label && <Label className="mb-2 block text-sm font-medium text-gray-700">{component.label}</Label>}
             <div className="space-y-2">
-              {component.data_source?.map((item) => (
+              {component["data-source"]?.map((item) => (
                 <div key={item.id} className="flex items-center space-x-2">
                   <RadioGroupItem value={item.id} id={`${component.name}-${item.id}`} />
                   <Label htmlFor={`${component.name}-${item.id}`} className="text-sm font-normal text-gray-800">{item.title}</Label>
@@ -319,7 +341,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
                 <SelectValue placeholder={component.label || "Select an option"} />
               </SelectTrigger>
               <SelectContent>
-                {component.data_source?.map((item) => (
+                {component["data-source"]?.map((item) => (
                   <SelectItem key={item.id} value={item.id}>{item.title}</SelectItem>
                 ))}
               </SelectContent>
@@ -350,19 +372,19 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               href={component.url || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-800 underline"
+              className="text-sm text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
             >
-              {component.text || component.url || 'Link'}
+              {component.text || component.url || 'Link'} <ExternalLink size={12} />
             </a>
           </div>
         );
       case 'Footer': {
-        const hasAction = component.action && component.action.type;
+        const hasAction = component["on-click-action"] && component["on-click-action"].name;
         const footerClasses = cn(
-          "text-center mt-auto mb-2 mx-2 rounded-md py-3 px-4", // Common styling, mt-auto to push to bottom
+          "text-center mt-auto mb-2 mx-2 rounded-md py-3 px-4", 
           hasAction
-            ? "bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer font-semibold text-sm" // Button-like
-            : "text-xs text-muted-foreground" // Standard muted footer text
+            ? "bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer font-semibold text-sm" 
+            : "text-xs text-muted-foreground" 
         );
         return (
           <div
@@ -373,7 +395,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             tabIndex={hasAction ? 0 : undefined}
             onKeyDown={hasAction ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFooterAction(component); } } : undefined}
           >
-            {component.text}
+            {component.label || component.text}
           </div>
         );
       }
@@ -384,6 +406,12 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
                   <span>{component.label || 'Screen Confirmation Area'}</span>
               </div>
           );
+      case 'Form': // Form component, render its children
+        return (
+          <div key={key} className="space-y-3">
+            {component.children?.map((child, childIndex) => renderInnerComponent(child, childIndex))}
+          </div>
+        );
       default:
         return (
           <div key={key} className="p-2 my-2 border border-dashed rounded bg-amber-50 text-amber-700 text-xs mx-2">
@@ -395,13 +423,28 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         );
     }
   };
+  
+  const renderFlowComponent = (component: FlowComponent, index: number): JSX.Element | null => {
+     // If the top-level component is a Form, we directly render its children.
+    // Otherwise, we render the component itself using renderInnerComponent.
+    // This avoids double-wrapping if the screen's direct child is a Form.
+    if (component.type === 'Form' && component.children) {
+      return (
+        <div key={`form-wrapper-${index}`} className="space-y-3">
+           {component.children.map((child, childIndex) => renderInnerComponent(child, childIndex))}
+        </div>
+      );
+    }
+    return renderInnerComponent(component, index);
+  };
+
 
   const InteractiveMessageCard = () => (
     <Card className="bg-white shadow-lg rounded-lg mx-auto max-w-sm my-2 overflow-hidden">
       <CardHeader className="p-3 bg-green-50">
         <CardTitle className="text-sm font-semibold text-green-800">Interactive Message</CardTitle>
         <CardDescription className="text-xs text-green-700">
-          {currentScreen?.id ? `Ready to open: ${currentScreen.id}` : 'Flow ready'}
+          {currentScreen?.title ? `Ready to open: ${currentScreen.title}` : currentScreen?.id ? `Ready to open: ${currentScreen.id}` : 'Flow ready'}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-3">
@@ -457,17 +500,15 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
 
           {/* Chat Area */}
           <ScrollArea
-            className="flex-1 p-3 bg-repeat min-h-0" // min-h-0 is important for flex + scroll
+            className="flex-1 p-3 bg-repeat min-h-0" 
             style={{ backgroundImage: "url('https://placehold.co/10x10.png/E5DDD5/E5DDD5?text=_')" }}
             data-ai-hint="chat background pattern"
           >
-            {/* Date Chip */}
             <div className="text-center my-2">
               <span className="bg-[#E1F7CB] text-xs text-gray-700 px-2 py-1 rounded-md shadow-sm">
                 Today
               </span>
             </div>
-            {/* Encryption Notice */}
             <div className="text-center my-2">
               <span className="bg-[#FCFDEA] text-xs text-yellow-700 px-2 py-1 rounded-md shadow-sm border border-yellow-300/50">
                 This is an end-to-end encrypted Flow.
@@ -520,7 +561,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               className="h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl bg-background"
               onOpenAutoFocus={(e) => e.preventDefault()} 
             >
-              <SheetHeader className="p-4 border-b flex-shrink-0 flex flex-row items-center justify-between relative">
+              <SheetHeader className="p-4 border-b flex-shrink-0 flex flex-row items-center justify-between relative bg-background">
                 <div className="flex items-center gap-2">
                   {navigationHistory.length > 0 && (
                     <ShadButton variant="ghost" size="icon" onClick={handleGoBack} className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900">
@@ -528,9 +569,9 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
                     </ShadButton>
                   )}
                   <div className={navigationHistory.length === 0 ? "pl-8 sm:pl-0" : ""}> 
-                    <SheetTitle className="text-base font-semibold text-left">{currentScreen?.id || 'Interactive Form'}</SheetTitle>
+                    <SheetTitle className="text-base font-semibold text-left">{currentScreen?.title || currentScreen?.id || 'Interactive Form'}</SheetTitle>
                     <SheetDescription className="text-xs text-left">
-                      {parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
+                      {parsedFlow?.data_api_version ? `Flow Data API Version: ${parsedFlow.data_api_version}` : parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
                     </SheetDescription>
                   </div>
                 </div>
