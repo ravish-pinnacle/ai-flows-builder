@@ -2,13 +2,12 @@
 "use client";
 
 import type { FC } from 'react';
-import { useState, useEffect } from 'react';
-import type { DragEvent } from 'react';
+import React, { useState, useEffect, useCallback, type DragEvent } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Eye, Code, ClipboardCopy } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { useToast, type Toast as ImportedToastProps } from "@/hooks/use-toast";
 
 interface FlowCanvasProps {
   flowJson: string;
@@ -24,7 +23,12 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
   const [droppedComponents, setDroppedComponents] = useState<DroppedComponent[]>([]);
   const [currentFlow, setCurrentFlow] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'visual' | 'json'>('visual');
-  const { toast } = useToast();
+  
+  const { toast: originalToast } = useToast();
+
+  const toast = useCallback((options: ImportedToastProps) => {
+    originalToast(options);
+  }, [originalToast]);
 
   useEffect(() => {
     try {
@@ -43,7 +47,7 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
       toast({
         title: "Invalid Flow JSON",
-        description: `The Flow JSON could not be parsed: ${errorMessage}. Please check the JSON structure.`,
+        description: `The Flow JSON could not be parsed: ${errorMessage}. Please check the JSON structure in the JSON view.`,
         variant: "destructive",
       });
     }
@@ -149,10 +153,10 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
          <div className="text-center py-12">
            <Code className="mx-auto h-16 w-16 text-muted-foreground" />
            <p className="mt-4 text-lg text-muted-foreground">
-             {flowJson && flowJson.trim() !== "" ? "JSON is invalid or empty." : "No flow JSON loaded."}
+             {flowJson && flowJson.trim() !== "" && !currentFlow ? "JSON is invalid or empty." : "No flow JSON loaded."}
            </p>
            <p className="text-sm text-muted-foreground">
-            {flowJson && flowJson.trim() !== "" ? "Please check the structure or generate/import a valid flow." : "Generate or import a flow to see its raw JSON data."}
+            {flowJson && flowJson.trim() !== "" && !currentFlow ? "Please check the structure or generate/import a valid flow." : "Generate or import a flow to see its raw JSON data."}
           </p>
         </div>
       )}
