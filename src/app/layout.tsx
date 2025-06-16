@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'FlowForge - WhatsApp Flow Designer',
+  title: 'AI Flows Builder - WhatsApp Flow Designer',
   description: 'Design, preview, and optimize WhatsApp Flows with AI-powered tools.',
 };
 
