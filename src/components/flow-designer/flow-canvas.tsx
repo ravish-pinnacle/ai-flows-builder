@@ -7,7 +7,8 @@ import type { DragEvent } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, Code } from 'lucide-react';
+import { Eye, Code, ClipboardCopy } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 interface FlowCanvasProps {
   flowJson: string;
@@ -23,6 +24,7 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
   const [droppedComponents, setDroppedComponents] = useState<DroppedComponent[]>([]);
   const [currentFlow, setCurrentFlow] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'visual' | 'json'>('visual');
+  const { toast } = useToast();
 
   useEffect(() => {
     try {
@@ -62,6 +64,21 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
       }
     } catch (error) {
       console.error("Error processing dropped data:", error);
+    }
+  };
+
+  const handleCopyJson = async () => {
+    if (!currentFlow) {
+      toast({ title: "Error", description: "No JSON to copy.", variant: "destructive" });
+      return;
+    }
+    try {
+      const jsonString = JSON.stringify(currentFlow, null, 2);
+      await navigator.clipboard.writeText(jsonString);
+      toast({ title: "Success", description: "Flow JSON copied to clipboard!" });
+    } catch (err) {
+      console.error("Failed to copy JSON: ", err);
+      toast({ title: "Error", description: "Failed to copy JSON to clipboard.", variant: "destructive" });
     }
   };
 
@@ -142,7 +159,19 @@ export const FlowCanvas: FC<FlowCanvasProps> = ({ flowJson }) => {
         <h2 className="text-lg font-semibold text-foreground">
           {viewMode === 'visual' ? 'Visual Designer' : 'JSON Editor'}
         </h2>
-        <div className="flex gap-1">
+        <div className="flex gap-1 items-center">
+          {viewMode === 'json' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopyJson}
+              aria-label="Copy JSON"
+              disabled={!currentFlow}
+            >
+              <ClipboardCopy className="h-4 w-4 mr-2" />
+              Copy JSON
+            </Button>
+          )}
           <Button
             variant={viewMode === 'visual' ? 'secondary' : 'ghost'}
             size="sm"
