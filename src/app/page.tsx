@@ -1,15 +1,16 @@
+
 "use client";
 
 import { useState } from "react";
 import { AppHeader } from "@/components/layout/app-header";
-import { ComponentPanel } from "@/components/flow-designer/component-panel";
+// import { ComponentPanel } from "@/components/flow-designer/component-panel"; // Removed
 import { FlowCanvas } from "@/components/flow-designer/flow-canvas";
 import { PreviewWindow } from "@/components/real-time-preview/preview-window";
-import { VariableManager } from "@/components/variable-management/variable-manager";
+// import { VariableManager } from "@/components/variable-management/variable-manager"; // Removed
 import { AIGenerator } from "@/components/ai-tools/ai-generator";
 import { ScreenshotToFlowGenerator } from "@/components/ai-tools/screenshot-to-flow-generator";
-import { AIOptimizer } from "@/components/ai-tools/ai-optimizer";
-import { FlowImporterExporter } from "@/components/flow-io/flow-importer-exporter";
+// import { AIOptimizer } from "@/components/ai-tools/ai-optimizer"; // Removed
+// import { FlowImporterExporter } from "@/components/flow-io/flow-importer-exporter"; // Removed
 import {
   ResizableHandle,
   ResizablePanel,
@@ -39,19 +40,19 @@ export default function FlowForgePage() {
         <ResizablePanel defaultSize={30} minSize={20} maxSize={40} className="flex flex-col">
           <ScrollArea className="h-full p-4">
             <h2 className="text-xl font-semibold mb-4 font-headline">Tools</h2>
-            <Accordion type="multiple" className="w-full space-y-2" defaultValue={["components", "ai-generator", "screenshot-to-flow"]}>
-              <AccordionItem value="components">
+            <Accordion type="multiple" className="w-full space-y-2" defaultValue={["ai-generator"]}>
+              {/* <AccordionItem value="components">
                 <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">Component Library</AccordionTrigger>
                 <AccordionContent className="pt-1">
                   <ComponentPanel />
                 </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="variables">
+              </AccordionItem> */}
+              {/* <AccordionItem value="variables">
                 <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">Variable Management</AccordionTrigger>
                 <AccordionContent className="pt-1">
                   <VariableManager />
                 </AccordionContent>
-              </AccordionItem>
+              </AccordionItem> */}
               <AccordionItem value="ai-generator">
                 <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">AI Flow Generator</AccordionTrigger>
                 <AccordionContent className="pt-1">
@@ -64,18 +65,18 @@ export default function FlowForgePage() {
                   <ScreenshotToFlowGenerator onFlowGenerated={handleFlowUpdate} />
                 </AccordionContent>
               </AccordionItem>
-              <AccordionItem value="ai-optimizer">
+              {/* <AccordionItem value="ai-optimizer">
                 <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">AI Flow Optimizer</AccordionTrigger>
                 <AccordionContent className="pt-1">
                   <AIOptimizer currentFlow={currentFlowJson} />
                 </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="import-export">
+              </AccordionItem> */}
+              {/* <AccordionItem value="import-export">
                 <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">Import / Export</AccordionTrigger>
                 <AccordionContent className="pt-1">
                   <FlowImporterExporter currentFlow={currentFlowJson} onFlowImported={handleFlowUpdate} />
                 </AccordionContent>
-              </AccordionItem>
+              </AccordionItem> */}
             </Accordion>
           </ScrollArea>
         </ResizablePanel>
