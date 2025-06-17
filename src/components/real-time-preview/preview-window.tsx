@@ -5,6 +5,7 @@ import type { FC } from 'react';
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
+import { useTheme } from 'next-themes';
 import { Button as ShadButton } from '@/components/ui/button';
 import { Input as ShadInput } from '@/components/ui/input';
 import { Textarea as ShadTextarea } from '@/components/ui/textarea';
@@ -78,6 +79,17 @@ interface PreviewWindowProps {
 export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const phoneRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
+
+  const chatBackgroundStyle = useMemo(
+    () => ({
+      backgroundImage:
+        resolvedTheme === 'dark'
+          ? "url('https://placehold.co/10x10.png/111B21/111B21?text=_')"
+          : "url('https://placehold.co/10x10.png/E5DDD5/E5DDD5?text=_')",
+    }),
+    [resolvedTheme]
+  );
   
   const { toast: originalToast } = useToast();
   const toast = useCallback((options: ImportedToastProps) => {
@@ -440,19 +452,19 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
 
 
   const InteractiveMessageCard = () => (
-    <Card className="bg-white shadow-lg rounded-lg mx-auto max-w-sm my-2 overflow-hidden">
-      <CardHeader className="p-3 bg-green-50">
-        <CardTitle className="text-sm font-semibold text-green-800">Interactive Message</CardTitle>
-        <CardDescription className="text-xs text-green-700">
+    <Card className="bg-card text-card-foreground shadow-lg rounded-lg mx-auto max-w-sm my-2 overflow-hidden">
+      <CardHeader className="p-3 bg-green-50 dark:bg-green-950">
+        <CardTitle className="text-sm font-semibold text-green-800 dark:text-green-100">Interactive Message</CardTitle>
+        <CardDescription className="text-xs text-green-700 dark:text-green-200">
           {currentScreen?.title ? `Ready to open: ${currentScreen.title}` : currentScreen?.id ? `Ready to open: ${currentScreen.id}` : 'Flow ready'}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-3">
-        <p className="text-sm text-gray-700 mb-2">
+        <p className="text-sm text-gray-700 dark:text-gray-200 mb-2">
           Click the button below to open the interactive form.
         </p>
       </CardContent>
-      <CardFooter className="p-3 border-t">
+      <CardFooter className="p-3 border-t dark:border-gray-700">
         <SheetTrigger asChild>
           <ShadButton
             className="w-full bg-green-600 hover:bg-green-700 text-white"
@@ -471,7 +483,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <div
           ref={phoneRef}
-          className="w-[360px] h-[740px] bg-[#E5DDD5] rounded-[30px] border-[10px] border-black shadow-2xl overflow-hidden flex flex-col relative"
+          className="w-[360px] h-[740px] bg-[#E5DDD5] dark:bg-[#111B21] rounded-[30px] border-[10px] border-black shadow-2xl overflow-hidden flex flex-col relative"
         >
           {/* Phone Notch and Status Bar */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150px] h-[25px] bg-black rounded-b-xl z-20 flex items-center justify-center px-2">
@@ -487,10 +499,10 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           </div>
 
           {/* WhatsApp Header */}
-          <div className="bg-[#075E54] text-white p-3 flex items-center gap-3 shadow-sm sticky top-0 z-10 flex-shrink-0">
-             <ArrowLeft size={20} className="cursor-pointer opacity-80 hover:opacity-100" onClick={() => { setIsSheetOpen(false); setNavigationHistory([]); }} />
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <MessageCircle size={18} className="text-[#075E54]" />
+          <div className="bg-[#075E54] dark:bg-[#202C33] text-white p-3 flex items-center gap-3 shadow-sm sticky top-0 z-10 flex-shrink-0">
+             <ArrowLeft size={20} className="cursor-pointer opacity-80 hover:opacity-100 text-white" onClick={() => { setIsSheetOpen(false); setNavigationHistory([]); }} />
+            <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+              <MessageCircle size={18} className="text-[#075E54] dark:text-[#202C33]" />
             </div>
             <div className="flex-grow">
               <h3 className="font-semibold text-sm">Flow Business</h3>
@@ -500,24 +512,24 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
 
           {/* Chat Area */}
           <ScrollArea
-            className="flex-1 p-3 bg-repeat min-h-0" 
-            style={{ backgroundImage: "url('https://placehold.co/10x10.png/E5DDD5/E5DDD5?text=_')" }}
+            className="flex-1 p-3 bg-repeat min-h-0 dark:bg-[#111B21]"
+            style={chatBackgroundStyle}
             data-ai-hint="chat background pattern"
           >
             <div className="text-center my-2">
-              <span className="bg-[#E1F7CB] text-xs text-gray-700 px-2 py-1 rounded-md shadow-sm">
+              <span className="bg-[#E1F7CB] text-xs text-gray-700 dark:bg-[#25343D] dark:text-gray-200 px-2 py-1 rounded-md shadow-sm">
                 Today
               </span>
             </div>
             <div className="text-center my-2">
-              <span className="bg-[#FCFDEA] text-xs text-yellow-700 px-2 py-1 rounded-md shadow-sm border border-yellow-300/50">
+              <span className="bg-[#FCFDEA] text-xs text-yellow-700 dark:bg-[#3b3b1f] dark:text-yellow-200 px-2 py-1 rounded-md shadow-sm border border-yellow-300/50 dark:border-yellow-700/50">
                 This is an end-to-end encrypted Flow.
               </span>
             </div>
 
             {errorMessage && (
-              <Card className="bg-red-50 border-red-300 shadow-md rounded-lg mx-auto max-w-sm my-2">
-                <CardContent className="p-3 text-center text-red-700">
+              <Card className="bg-red-50 dark:bg-red-900 border-red-300 dark:border-red-700 shadow-md rounded-lg mx-auto max-w-sm my-2">
+                <CardContent className="p-3 text-center text-red-700 dark:text-red-200">
                   <p className="font-medium">Preview Error</p>
                   <p className="text-sm">{errorMessage}</p>
                 </CardContent>
@@ -525,15 +537,15 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             )}
 
             {!errorMessage && !currentScreen && flowJson && (
-              <Card className="bg-yellow-50 border-yellow-300 shadow-md rounded-lg mx-auto max-w-sm my-2">
-                <CardContent className="p-3 text-center text-yellow-700">
+              <Card className="bg-yellow-50 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-700 shadow-md rounded-lg mx-auto max-w-sm my-2">
+                <CardContent className="p-3 text-center text-yellow-700 dark:text-yellow-200">
                   <p>Flow data loaded, but no screens to display or an issue with screen data.</p>
                 </CardContent>
               </Card>
             )}
 
             {!errorMessage && !currentScreen && !flowJson && (
-              <div className="p-8 text-center text-gray-400 h-full flex flex-col justify-center items-center">
+              <div className="p-8 text-center text-gray-400 dark:text-gray-500 h-full flex flex-col justify-center items-center">
                   <Smartphone size={48} className="mx-auto mb-2 opacity-50" />
                   <p>No flow data loaded.</p>
                   <p className="text-xs">Generate or import a flow.</p>
@@ -546,9 +558,9 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           </ScrollArea>
 
           {/* WhatsApp Input Bar */}
-          <div className="bg-[#F0F0F0] p-2 border-t border-gray-300 flex items-center gap-2 sticky bottom-0 flex-shrink-0">
-            <div className="flex-grow bg-white rounded-full h-10 flex items-center px-4 shadow-sm">
-              <p className="text-sm text-gray-400">Type a message...</p>
+          <div className="bg-[#F0F0F0] dark:bg-[#202C33] p-2 border-t border-gray-300 dark:border-gray-700 flex items-center gap-2 sticky bottom-0 flex-shrink-0">
+            <div className="flex-grow bg-white dark:bg-[#2A3942] rounded-full h-10 flex items-center px-4 shadow-sm">
+              <p className="text-sm text-gray-400 dark:text-gray-500">Type a message...</p>
             </div>
             <div className="bg-primary p-2 rounded-full shadow-sm cursor-pointer text-white">
                <Send size={20} />
@@ -558,13 +570,13 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
           <SheetPortal container={phoneRef.current}>
             <SheetContent
               side="bottom"
-              className="h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl bg-background"
-              onOpenAutoFocus={(e) => e.preventDefault()} 
+              className="h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl bg-background border-t border-gray-200 dark:border-gray-700"
+              onOpenAutoFocus={(e) => e.preventDefault()}
             >
-              <SheetHeader className="p-4 border-b flex-shrink-0 flex flex-row items-center justify-between relative bg-background">
+              <SheetHeader className="p-4 border-b dark:border-gray-700 flex-shrink-0 flex flex-row items-center justify-between relative bg-background">
                 <div className="flex items-center gap-2">
                   {navigationHistory.length > 0 && (
-                    <ShadButton variant="ghost" size="icon" onClick={handleGoBack} className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900">
+                    <ShadButton variant="ghost" size="icon" onClick={handleGoBack} className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
                        <ArrowLeft size={18} />
                     </ShadButton>
                   )}
