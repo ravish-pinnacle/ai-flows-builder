@@ -7,6 +7,7 @@ import { FlowCanvas } from "@/components/flow-designer/flow-canvas";
 import { PreviewWindow } from "@/components/real-time-preview/preview-window";
 import { AIGenerator } from "@/components/ai-tools/ai-generator";
 import { ScreenshotToFlowGenerator } from "@/components/ai-tools/screenshot-to-flow-generator";
+import { FlowEditorCopilot } from "@/components/ai-tools/flow-editor-copilot"; // Import the new component
 import {
   ResizableHandle,
   ResizablePanel,
@@ -44,9 +45,15 @@ export default function FlowForgePage() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="screenshot-to-flow">
-                <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">Screenshot to Flow (Experimental)</AccordionTrigger>
+                <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">Screenshot to Flow</AccordionTrigger>
                 <AccordionContent className="pt-1">
                   <ScreenshotToFlowGenerator onFlowGenerated={handleFlowUpdate} />
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="ai-flow-editor">
+                <AccordionTrigger className="text-base hover:no-underline bg-card p-3 rounded-md shadow-sm">AI Flow Editor (Copilot)</AccordionTrigger>
+                <AccordionContent className="pt-1">
+                  <FlowEditorCopilot currentFlowJson={currentFlowJson} onFlowEdited={handleFlowUpdate} />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
