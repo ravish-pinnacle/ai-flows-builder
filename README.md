@@ -13,8 +13,4 @@ This project is a Next.js application designed to be a visual flow designer with
 - **Variable Management:** Define and manage variables within your flows.
 - **Theme Toggle:** Switch between light and dark modes.
 
-## Installation
-
-1. Clone the repository:
-
 
