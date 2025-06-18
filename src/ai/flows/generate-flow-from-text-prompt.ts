@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Generates a WhatsApp flow from a text prompt.
@@ -35,92 +34,122 @@ const prompt = ai.definePrompt({
   name: 'generateFlowFromTextPromptPrompt',
   input: {schema: GenerateFlowFromTextPromptInputSchema},
   output: {schema: GenerateFlowFromTextPromptOutputSchema},
-  prompt: `You are an expert in designing WhatsApp flows according to the official Facebook documentation (version 7.1). Generate a WhatsApp flow in JSON format based on the following text prompt: {{{prompt}}}.
+  model: 'googleai/gemini-2.0-flash-exp',
+  prompt: `You are an expert UI/UX designer who creates valid WhatsApp Flows. Analyze the provided text prompt to generate a functional WhatsApp Flow JSON.
 
-The flow MUST include:
-- A "version" property set to "7.1".
-- An array of "screens". Each screen MUST have an "id".
-- Screens SHOULD contain "layout" and "data" sections where appropriate.
-- Layouts MUST define "type" (e.g., "SingleColumnLayout") and "children" (an array of components).
-- Use 'Headline' components or a prominent 'Text' component (e.g., with BOLD style) at the beginning of a screen's layout.children array to serve as a visual title for the screen.
+**CRITICAL INSTRUCTIONS: READ AND FOLLOW EXACTLY**
 
-STRICTLY use ONLY the following supported v7.1 components:
-  - Text (with "type": "Text", "text": "your_string_content", and optionally "style": ["BOLD", "ITALIC"] for basic styling. Do NOT use markdown within the text property. Use multiple Text components for paragraphs or lists if needed.)
-  - Image (with "type": "Image", "image_id": "your_image_id_or_url". Do NOT embed images using markdown in Text components.)
-  - Button (with "type": "Button", "label": "your_label", "action_id": "your_action_id". Buttons are used for triggering actions.)
-  - TextInput (with "type": "TextInput", "name": "input_name", "label": "Input Label")
-  - TextArea (with "type": "TextArea", "name": "textarea_name", "label": "TextArea Label")
-  - CheckboxGroup (with "type": "CheckboxGroup", "name": "checkbox_name", "label": "Checkbox Group Label", "data_source": [{"id": "unique_id_1", "title": "Option Title 1"}, {"id": "unique_id_2", "title": "Option Title 2"}])
-  - RadioButtonGroup (with "type": "RadioButtonGroup", "name": "radio_name", "label": "Radio Group Label", "data_source": [{"id": "unique_id_a", "title": "Choice A"}, {"id": "unique_id_b", "title": "Choice B"}])
-  - Dropdown (with "type": "Dropdown", "label": "Select an option", "name": "dropdown_name", "data_source": [{"id": "dd_opt_1", "title": "Dropdown Item 1"}, {"id": "dd_opt_2", "title": "Dropdown Item 2"}])
-  - DatePicker (with "type": "DatePicker", "name": "date_picker_name", "label": "Select a Date")
-  - OptIn (with "type": "OptIn", "name": "opt_in_name", "label": "Agree to terms". OptIn components are for consent and DO NOT support on-click navigation actions.)
-  - EmbeddedLink (with "type": "EmbeddedLink", "url": "your_url", "text": "Link Text". Use this for hyperlinks.)
-  - Footer (with "type": "Footer", "text": "Footer Text".
-      Footers can also have an INLINE "action" property for navigation or data exchange.
-      This "action" is defined DIRECTLY IN THE FOOTER object itself, NOT via an action_id linking to the root "actions" array.
-      Example of a Footer with a navigation action:
-      {
-        "type": "Footer",
-        "text": "Proceed to next step",
-        "action": {
-          "type": "navigate",
-          "screen_id": "NEXT_SCREEN_ID"
-        }
-      }
-      DO NOT place a separate "Button" component inside a Footer to trigger its main action. The main action of a Footer is defined by its own "action" property.
-    )
-  - Headline (with "type": "Headline", "text": "Headline Text". Use this for large screen headings, often as the first child in a screen's layout.)
-  - ScreenConfirmation (with "type": "ScreenConfirmation", "name": "confirmation_name", "label": "Confirmation Details")
+Your primary goal is to generate a VALID JSON that strictly follows the structure of the complete example provided at the end of these instructions. Do not deviate from the structure shown in the example.
 
-DO NOT use non-standard components like 'TextCaption', 'TextBody', or 'RichText'.
-- For multi-paragraph text, use multiple "Text" components.
-- For headings, use "Headline" or "Text" with "BOLD" style.
-- For lists, simulate with multiple "Text" components, each potentially prefixed with a bullet or number.
-- For hyperlinks, use "EmbeddedLink".
+**KEY STRUCTURAL RULES:**
+1.  **ROOT PROPERTIES**: The JSON MUST start with \`"version": "7.1"\`, \`"data_api_version": "3.0"\`, and a \`"routing_model"\`.
+2.  **SCREENS**: Each screen object MUST have an \`id\`, a \`title\`, and a \`layout\` object. The last screen should be marked with \`"terminal": true\`.
+3.  **FORM & FOOTER PLACEMENT (VERY IMPORTANT)**:
+    - To use any input fields (\`TextInput\`, \`Dropdown\`, etc.), they MUST be inside a \`"type": "Form"\` component. Each form must have a unique \`name\`.
+    - The \`Footer\` component that serves as the "Next" or "Submit" button for a form MUST be the **LAST** item inside that \`Form\`'s \`children\` array.
+    - **DO NOT** place the \`Footer\` outside the \`layout.children\` array. This is invalid. Study the example below to see the correct placement.
 
-**CRITICAL for \`data_source\`**: For CheckboxGroup, RadioButtonGroup, and Dropdown components, EACH item in their "data_source" array MUST be an object. This object MUST contain BOTH an "id" (a unique string identifier, e.g., "option_1") AND a "title" (a user-visible string for display, e.g., "User Friendly Option 1"). THE "title" PROPERTY IS MANDATORY AND MUST NOT BE OMITTED. The "title" is what the user sees in the UI. If the prompt does not provide a clear display title for an item in \`data_source\`, use its "id" value as the "title" (e.g., \`{"id": "option_A", "title": "option_A"}\`) rather than omitting "title". Example: \`"data_source": [{"id": "pizza_size_small", "title": "Small Pizza"}, {"id": "generic_choice", "title": "generic_choice"}]\`. Do NOT generate items with only an "id" or items like \`[{"id":"order_pizza"}]\`; they MUST have a "title".
+**COMPONENT DEFINITIONS:**
+- Use specific text types: \`TextHeading\`, \`TextSubheading\`, \`TextBody\`, \`TextCaption\`.
+- \`Image\`: Must have a \`"src"\` property. e.g., \`{"type": "Image", "src": "placeholder.png"}\`.
+- \`RadioButtonsGroup\` & \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
 
-**CRITICAL for Actions (for Button components)**:
-Buttons trigger actions via an "action_id" property (e.g., \`"action_id": "SUBMIT_FORM"\`). This "action_id" MUST correspond to an action defined in a **top-level "actions" array** in the root of the JSON.
-Example:
-A button component might have: \`"action_id": "GO_TO_NEXT_SCREEN"\`.
-The root of your JSON must then contain an "actions" array like this:
+**ACTION DEFINITIONS (Inside Footer's \`on-click-action\`):**
+- **Navigate**: Use the nested \`next\` object: \`{ "name": "navigate", "next": { "type": "screen", "name": "SCREEN_ID" } }\`
+- **Complete**: Use a \`payload\` object to gather data from all forms: \`{ "name": "complete", "payload": { "field": "\u0024{form.form_name.field_name}" } }\`
+
+---
+**FULL, VALID EXAMPLE TO FOLLOW:**
+
 \`\`\`json
 {
   "version": "7.1",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "SCREEN_A": ["SCREEN_B"],
+    "SCREEN_B": []
+  },
   "screens": [
-    // ... your screens ...
     {
-      "id": "CURRENT_SCREEN",
+      "id": "SCREEN_A",
+      "title": "Screen A Title",
       "layout": {
         "type": "SingleColumnLayout",
         "children": [
           {
-            "type": "Button",
-            "label": "Next Step",
-            "action_id": "GO_TO_NEXT_SCREEN"
+            "type": "TextHeading",
+            "text": "Welcome to Screen A"
+          },
+          {
+            "type": "Form",
+            "name": "form_a",
+            "children": [
+              {
+                "type": "TextInput",
+                "name": "user_input",
+                "label": "Enter some text"
+              },
+              {
+                "type": "Footer",
+                "label": "Go to Screen B",
+                "on-click-action": {
+                  "name": "navigate",
+                  "next": {
+                    "type": "screen",
+                    "name": "SCREEN_B"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "SCREEN_B",
+      "title": "Screen B Title",
+      "terminal": true,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "TextHeading",
+            "text": "This is the final screen."
+          },
+          {
+            "type": "Form",
+            "name": "form_b",
+            "children": [
+              {
+                "type": "TextBody",
+                "text": "Click submit to finish."
+              },
+              {
+                "type": "Footer",
+                "label": "Submit",
+                "on-click-action": {
+                  "name": "complete",
+                  "payload": {
+                    "input_from_a": "\u0024{form.form_a.user_input}"
+                  }
+                }
+              }
+            ]
           }
         ]
       }
     }
-  ],
-  "actions": [
-    {
-      "id": "GO_TO_NEXT_SCREEN",
-      "type": "navigate",
-      "screen_id": "TARGET_SCREEN_ID"
-    }
-    // ... other actions like data_exchange or complete
   ]
 }
 \`\`\`
-Supported action types to define in the top-level "actions" array (for Buttons):
-- Navigation: \`{ "id": "your_action_id", "type": "navigate", "screen_id": "target_screen_id" }\`
-- Data Submission (data_exchange): \`{ "id": "your_action_id", "type": "data_exchange", "flow_exchange_data": { ...variables... }, "success_action": { "type": "navigate", "screen_id": "success_screen_id" }, "error_action": { "type": "navigate", "screen_id": "error_screen_id" } }\` (Note: success_action and error_action here are nested actions, not needing separate entries in the root "actions" array unless they are reused by multiple data_exchange actions).
-- Flow Completion (complete): \`{ "id": "your_action_id", "type": "complete", "flow_exchange_data": { ...variables... } }\`
+---
 
-Ensure the JSON structure is valid and strictly adheres to WhatsApp Flow specifications for version 7.1. Focus on creating a functional and well-structured flow based on the user's prompt. Pay close attention to correct JSON syntax, especially for nesting arrays and objects, and ensure there are no trailing commas or extraneous closing brackets. Verify that all required properties for each component type are present as per the documentation. Avoid any markdown syntax within component text properties; use the specified component types and styles instead.`,
+Now, based on the user's text prompt below, generate a new, valid JSON file that follows the exact structure of the example above. Pay special attention to the correct placement of all Footer components.
+
+User Prompt: {{{prompt}}}
+
+Output the result as a single JSON object representing the WhatsApp flow.
+`,
 });
 
 const generateFlowFromTextPromptFlow = ai.defineFlow(
@@ -134,4 +163,3 @@ const generateFlowFromTextPromptFlow = ai.defineFlow(
     return output!;
   }
 );
-
