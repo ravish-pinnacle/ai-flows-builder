@@ -143,10 +143,25 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   }, [parsedFlow, activeScreenId]);
 
   const { screenComponents, footerComponent } = useMemo(() => {
-      const children = currentScreen?.layout?.children || [];
-      const footer = children.find(c => c.type === 'Footer' && c['on-click-action']) ?? null;
-      const components = children.filter(c => c !== footer);
-      return { screenComponents: components, footerComponent: footer };
+    const children = currentScreen?.layout?.children || [];
+    
+    let footer: FlowComponent | null = null;
+    const findFooterRecursive = (components: FlowComponent[]): FlowComponent | null => {
+        for (const component of components) {
+            if (component.type === 'Footer' && component['on-click-action']) {
+                return component;
+            }
+            if (component.type === 'Form' && component.children) {
+                const found = findFooterRecursive(component.children);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    footer = findFooterRecursive(children);
+
+    return { screenComponents: children, footerComponent: footer };
   }, [currentScreen]);
 
   const handleFooterAction = (component: FlowComponent) => {
