@@ -59,6 +59,12 @@ Provide specific, actionable suggestions, focusing on:
 - **Clarity and Simplicity**: Are screen layouts intuitive? Is text clear and concise (using 'Text' or 'Headline')? Are there too many components on a single screen?
 - **User Journey**: Is the navigation between screens logical? Can the number of steps or screens be reduced without losing functionality?
 - **Component Usage (v7.1)**: Are standard components like Text, Image, Button, TextInput, TextArea, CheckboxGroup, RadioButtonGroup, Dropdown, DatePicker, OptIn, EmbeddedLink, Footer, Headline, and ScreenConfirmation used effectively and according to v7.1 specs? For example, is a Dropdown used when a RadioButtonGroup might be better for a small number of options? Ensure each item in 'data_source' for CheckboxGroup, RadioButtonGroup, and Dropdown has both a unique 'id' and a user-facing 'title'. If 'title' is missing, this is a critical error and must be flagged.
+- **Media Component Rules**:
+    - Verify that a screen does not contain both a \`PhotoPicker\` and a \`DocumentPicker\`.
+    - Verify that a screen contains at most one \`PhotoPicker\` or one \`DocumentPicker\`.
+    - Check if a \`PhotoPicker\` or \`DocumentPicker\` is correctly placed inside a \`Form\` component.
+    - Check if \`min-uploaded-photos\` exceeds \`max-uploaded-photos\` (and same for documents).
+    - Flag if a media picker's value is used in the payload of a \`navigate\` action, as this is forbidden.
 - **Data Handling**: Is data collection efficient? Are variable names clear? Are data_exchange actions well-defined?
 - **Error Handling**: Are error states or actions considered for data submission or navigation failures?
 - **Accessibility**: While not directly inferable from JSON, provide general reminders if the flow structure suggests potential accessibility issues (e.g., very complex forms, lack of clear labels on input fields).

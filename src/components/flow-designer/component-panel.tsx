@@ -13,7 +13,8 @@ import {
   CircleDot, 
   ChevronDownSquare, 
   CalendarDays, // DatePicker
-  FileUp, // Media
+  Camera, // PhotoPicker
+  FileText, // DocumentPicker
   ToggleLeft, // OptIn
   Link as LinkIcon, // EmbeddedLink
   ShieldQuestion, // ScreenConfirmation
@@ -32,7 +33,8 @@ const components = [
   { name: "RadioButtonGroup", icon: <CircleDot className="h-5 w-5" />, description: "A group of radio buttons for single selection." },
   { name: "Dropdown", icon: <ChevronDownSquare className="h-5 w-5" />, description: "A dropdown menu for selecting one option from a list." },
   { name: "DatePicker", icon: <CalendarDays className="h-5 w-5" />, description: "A component for selecting a date." },
-  { name: "Media", icon: <FileUp className="h-5 w-5" />, description: "An input for uploading images or documents." },
+  { name: "PhotoPicker", icon: <Camera className="h-5 w-5" />, description: "Allows uploading media from camera or gallery." },
+  { name: "DocumentPicker", icon: <FileText className="h-5 w-5" />, description: "Allows uploading media from files or gallery." },
   { name: "OptIn", icon: <ToggleLeft className="h-5 w-5" />, description: "An opt-in toggle component, typically for agreements." },
   { name: "EmbeddedLink", icon: <LinkIcon className="h-5 w-5" />, description: "Text that acts as a hyperlink to an external URL." },
   { name: "Footer", icon: <PilcrowSquare className="h-5 w-5" />, description: "A footer text, often for disclaimers or short notes." }, // PilcrowSquare is a placeholder

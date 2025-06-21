@@ -4,8 +4,8 @@
  * @fileOverview Edits an existing WhatsApp flow JSON based on a text prompt.
  *
  * - editFlowWithPrompt - A function that takes existing flow JSON and an edit instruction, then returns the modified flow JSON.
- * - EditFlowWithPromptInput - The input type for the editFlowWithPrompt function.
- * - EditFlowWithPromptOutput - The return type for the editFlowWithPrompt function.
+ * - EditFlowWithPromptInput - The input type for the editFlowWithprompt function.
+ * - EditFlowWithPromptOutput - The return type for the editFlowWithprompt function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -41,17 +41,23 @@ Your goal is to apply the requested changes and return the complete, updated, an
 1.  **ROOT PROPERTIES**: The JSON MUST start with \`"version": "7.1"\`, \`"data_api_version": "3.0"\`, and a \`"routing_model"\`.
 2.  **SCREENS**: Each screen object MUST have an \`id\`, a \`title\` (human-readable), and a \`layout\` object. The last screen in a path should be marked with \`"terminal": true\`.
 3.  **FORM & FOOTER PLACEMENT**:
-    - Input fields (\`TextInput\`, \`Dropdown\`, etc.) MUST be inside a \`"type": "Form"\` component. Each form must have a unique \`name\`.
+    - Input fields (\`TextInput\`, \`Dropdown\`, \`PhotoPicker\`, etc.) MUST be inside a \`"type": "Form"\` component. Each form must have a unique \`name\`.
     - A \`Footer\` component that serves as a "Next" or "Submit" button for a form MUST be the **LAST** item inside that \`Form\`'s \`children\` array.
     - A \`Footer\` can also be a direct child of the \`layout\` (outside a \`Form\`) if it's for general screen navigation not tied to form submission.
 4.  **COMPONENT DEFINITIONS (Examples)**:
-    - \`TextHeading\`: \`{"type": "TextHeading", "text": "..."}\`
-    - \`TextBody\`: \`{"type": "TextBody", "text": "..."}\`
+    - \`TextHeading\`, \`TextBody\`, etc. for styled text.
     - \`Image\`: \`{"type": "Image", "src": "placeholder.png"}\`
     - \`TextInput\`: \`{"type": "TextInput", "name": "...", "label": "..."}\`
     - \`RadioButtonsGroup\`, \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
-    - \`Media\`: \`{"type": "Media", "name": "...", "label": "Upload a file", "media_type": "image"}\` (media_type can be "image" or "document". MUST be inside a Form)
-5.  **ACTION DEFINITIONS (Inside Footer's \`on-click-action\` property)**:
+    - \`PhotoPicker\`: \`{"type": "PhotoPicker", "name": "...", "label": "..."}\`.
+    - \`DocumentPicker\`: \`{"type": "DocumentPicker", "name": "...", "label": "..."}\`.
+
+5.  **MEDIA UPLOAD CONSTRAINTS (VERY IMPORTANT):**
+    - Only ONE \`PhotoPicker\` OR ONE \`DocumentPicker\` is allowed per screen. They cannot be used together.
+    - Media picker components MUST be inside a \`Form\`.
+    - The value from a media picker (e.g., \`\u0024{form.form_name.picker_name}\`) can ONLY be used in a \`complete\` or \`data_exchange\` action. It CANNOT be used in a \`navigate\` action.
+
+6.  **ACTION DEFINITIONS (Inside Footer's \`on-click-action\` property)**:
     - **Navigate**: \`{ "name": "navigate", "next": { "type": "screen", "name": "SCREEN_ID" } }\`
     - **Complete**: \`{ "name": "complete", "payload": { "field": "\u0024{form.form_name.field_name}" } }\` (payload collects data from forms).
     - **Data Exchange**: \`{ "name": "data_exchange", "payload": { ... }, "success": { ... }, "error": { ... } }\`

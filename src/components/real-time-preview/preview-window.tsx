@@ -3,7 +3,7 @@
 
 import type { FC } from 'react';
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send, ExternalLink, FileUp } from 'lucide-react';
+import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send, ExternalLink, FileUp, Camera } from 'lucide-react';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { Button as ShadButton } from '@/components/ui/button';
@@ -32,34 +32,38 @@ import { cn } from "@/lib/utils";
 // Updated FlowComponent interface
 interface FlowComponent {
   type: string;
-  id?: string; // Optional, not always present
-  name?: string; // For form elements
-  text?: string; // For Text, TextBody, TextCaption, etc.
-  label?: string; // For form elements, Button, Footer
-  style?: string[]; // For Text component
-  src?: string; // For Image component
-  "data-source"?: { id: string; title: string }[]; // For CheckboxGroup, RadioButtonGroup, Dropdown
-  url?: string; // For EmbeddedLink
-  "on-click-action"?: { // For Footer actions primarily
-    name: string; // e.g., "navigate", "complete", "data_exchange"
-    next?: { type: string; name: string }; // For navigation
-    payload?: Record<string, any>; // For complete/data_exchange
+  id?: string;
+  name?: string;
+  text?: string;
+  label?: string;
+  description?: string;
+  style?: string[];
+  src?: string;
+  'data-source'?: { id: string; title: string }[];
+  url?: string;
+  'on-click-action'?: {
+    name: string;
+    next?: { type: string; name: string };
+    payload?: Record<string, any>;
   };
-  children?: FlowComponent[]; // For Form component
-  media_type?: 'image' | 'document';
-  max_file_size?: number;
+  children?: FlowComponent[];
+  'photo-source'?: 'camera_gallery' | 'camera' | 'gallery';
+  'max-file-size-kb'?: number;
+  'min-uploaded-photos'?: number;
+  'max-uploaded-photos'?: number;
+  'min-uploaded-documents'?: number;
+  'max-uploaded-documents'?: number;
+  'allowed-mime-types'?: string[];
 }
-
 
 interface FlowScreen {
   id: string;
-  title?: string; // Human-readable title for the screen
+  title?: string;
   layout: {
-    type: string; // e.g., "SingleColumnLayout"
+    type: string;
     children: FlowComponent[];
   };
   terminal?: boolean;
-  // ... other screen props
 }
 
 interface ParsedFlow {
@@ -169,9 +173,8 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         title: "Action Triggered (Preview)",
         description: `Footer: "${component.label || component.text}", Action: "${actionName}". (This action type is simulated as flow completion/data exchange).`,
       });
-       // Potentially close sheet or show a success message for "complete"
        if (actionName === "complete" && currentScreen?.terminal) {
-        setIsSheetOpen(false); // Example: close sheet on terminal "complete"
+        setIsSheetOpen(false);
       }
     } else {
       toast({
@@ -207,7 +210,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         return <p key={key} className="text-sm mb-2 px-2 py-1 whitespace-pre-wrap">{component.text}</p>;
       case 'TextCaption':
         return <p key={key} className="text-xs text-gray-500 mb-2 px-2 py-1">{component.text}</p>;
-      case 'Text': // Standard Text (fallback if others not used)
+      case 'Text': 
         let textClasses = "text-sm mb-2 px-2 py-1 whitespace-pre-wrap";
         if (component.style?.includes("BOLD")) textClasses += " font-bold";
         if (component.style?.includes("ITALIC")) textClasses += " italic";
@@ -296,18 +299,27 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             </div>
           </div>
         );
-      case 'Media':
+      case 'PhotoPicker':
         return (
-          <div key={key} className="mb-4 px-2 py-1">
-            {component.label && <Label htmlFor={component.name} className="mb-1 block text-xs font-medium text-gray-600">{component.label}</Label>}
-            <div className="flex items-center gap-2 mt-1">
-                <ShadButton variant="outline" className="w-full justify-start text-left font-normal">
-                    <FileUp className="mr-2 h-4 w-4" />
-                    <span>Upload {component.media_type || 'file'}</span>
-                </ShadButton>
-            </div>
-            {component.max_file_size && <p className="text-xs text-muted-foreground mt-1">Max file size: {(component.max_file_size / (1024*1024)).toFixed(1)} MB</p>}
-          </div>
+          <Card key={key} className="mb-4 p-3 bg-muted/30">
+            <Label className="font-semibold text-sm">{component.label}</Label>
+            {component.description && <p className="text-xs text-muted-foreground mt-1 mb-3">{component.description}</p>}
+             <ShadButton variant="outline" className="w-full mt-2">
+              <Camera className="mr-2 h-4 w-4" />
+              Take Photo
+            </ShadButton>
+          </Card>
+        );
+       case 'DocumentPicker':
+        return (
+           <Card key={key} className="mb-4 p-3 bg-muted/30">
+            <Label className="font-semibold text-sm">{component.label}</Label>
+            {component.description && <p className="text-xs text-muted-foreground mt-1 mb-3">{component.description}</p>}
+            <ShadButton variant="outline" className="w-full mt-2">
+              <FileUp className="mr-2 h-4 w-4" />
+              Upload Document
+            </ShadButton>
+          </Card>
         );
       case 'OptIn':
         return (
@@ -357,7 +369,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
                   <span>{component.label || 'Screen Confirmation Area'}</span>
               </div>
           );
-      case 'Form': // Form component, render its children
+      case 'Form':
         return (
           <div key={key} className="space-y-3">
             {component.children?.map((child, childIndex) => renderInnerComponent(child, childIndex))}
@@ -376,9 +388,6 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   };
   
   const renderFlowComponent = (component: FlowComponent, index: number): JSX.Element | null => {
-     // If the top-level component is a Form, we directly render its children.
-    // Otherwise, we render the component itself using renderInnerComponent.
-    // This avoids double-wrapping if the screen's direct child is a Form.
     if (component.type === 'Form' && component.children) {
       return (
         <div key={`form-wrapper-${index}`} className="space-y-3">

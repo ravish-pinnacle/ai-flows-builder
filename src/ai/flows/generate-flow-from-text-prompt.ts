@@ -46,7 +46,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
 1.  **ROOT PROPERTIES**: The JSON MUST start with \`"version": "7.1"\`, \`"data_api_version": "3.0"\`, and a \`"routing_model"\`.
 2.  **SCREENS**: Each screen object MUST have an \`id\`, a \`title\`, and a \`layout\` object. The last screen should be marked with \`"terminal": true\`.
 3.  **FORM & FOOTER PLACEMENT (VERY IMPORTANT)**:
-    - To use any input fields (\`TextInput\`, \`Dropdown\`, etc.), they MUST be inside a \`"type": "Form"\` component. Each form must have a unique \`name\`.
+    - To use any input fields (\`TextInput\`, \`Dropdown\`, \`PhotoPicker\`, etc.), they MUST be inside a \`"type": "Form"\` component. Each form must have a unique \`name\`.
     - The \`Footer\` component that serves as the "Next" or "Submit" button for a form MUST be the **LAST** item inside that \`Form\`'s \`children\` array.
     - **DO NOT** place the \`Footer\` outside the \`layout.children\` array. This is invalid. Study the example below to see the correct placement.
 
@@ -54,7 +54,14 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
 - Use specific text types: \`TextHeading\`, \`TextSubheading\`, \`TextBody\`, \`TextCaption\`.
 - \`Image\`: Must have a \`"src"\` property. e.g., \`{"type": "Image", "src": "placeholder.png"}\`.
 - \`RadioButtonsGroup\` & \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
-- \`Media\`: \`{"type": "Media", "name": "...", "label": "Upload a file", "media_type": "image"}\` (media_type can be "image" or "document". MUST be inside a Form)
+- \`PhotoPicker\`: \`{"type": "PhotoPicker", "name": "...", "label": "..."}\`. Used for uploading images.
+- \`DocumentPicker\`: \`{"type": "DocumentPicker", "name": "...", "label": "..."}\`. Used for uploading documents.
+
+**MEDIA UPLOAD CONSTRAINTS (VERY IMPORTANT):**
+- Only ONE \`PhotoPicker\` OR ONE \`DocumentPicker\` is allowed per screen. You CANNOT use both on the same screen.
+- Media picker components MUST be inside a \`Form\`.
+- The value from a media picker (e.g., \`\u0024{form.form_name.picker_name}\`) can ONLY be used in a \`complete\` or \`data_exchange\` action. It CANNOT be used in a \`navigate\` action.
+- The value from a media picker must be a top-level property in the action's payload. E.g., \`"payload": { "media": "\u0024{form.form_name.picker_name}" }\` is VALID. \`"payload": { "some_object": { "media": "..." } }\` is INVALID.
 
 **ACTION DEFINITIONS (Inside Footer's \`on-click-action\`):**
 - **Navigate**: Use the nested \`next\` object: \`{ "name": "navigate", "next": { "type": "screen", "name": "SCREEN_ID" } }\`
@@ -146,7 +153,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
 \`\`\`
 ---
 
-Now, based on the user's text prompt below, generate a new, valid JSON file that follows the exact structure of the example above. Pay special attention to the correct placement of all Footer components.
+Now, based on the user's text prompt below, generate a new, valid JSON file that follows the exact structure of the example above. Pay special attention to the correct placement of all Footer components and media upload constraints.
 
 User Prompt: {{{prompt}}}
 
