@@ -51,21 +51,24 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
     - **DO NOT** place the \`Footer\` outside the \`layout.children\` array. This is invalid. Study the example below to see the correct placement.
 
 **COMPONENT DEFINITIONS:**
-- Use specific text types: \`TextHeading\`, \`TextSubheading\`, \`TextBody\`, \`TextCaption\`.
+- \`Headline\`: \`{"type": "Headline", "text": "..."}\`
+- \`Text\`: \`{"type": "Text", "text": "...", "style": ["BOLD"]}\`
 - \`Image\`: Must have a \`"src"\` property. e.g., \`{"type": "Image", "src": "placeholder.png"}\`.
 - \`RadioButtonsGroup\` & \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
-- \`PhotoPicker\`: \`{"type": "PhotoPicker", "name": "...", "label": "..."}\`. Used for uploading images.
-- \`DocumentPicker\`: \`{"type": "DocumentPicker", "name": "...", "label": "..."}\`. Used for uploading documents.
+- \`PhotoPicker\`: \`{"type": "PhotoPicker", "name": "...", "label": "...", "description": "...", "photo-source": "camera_gallery", "min-uploaded-photos": 1, "max-uploaded-photos": 10}\`.
+- \`DocumentPicker\`: \`{"type": "DocumentPicker", "name": "...", "label": "...", "description": "...", "max-file-size-kb": 1024, "allowed-mime-types": ["application/pdf"]}\`.
 
 **MEDIA UPLOAD CONSTRAINTS (VERY IMPORTANT):**
 - Only ONE \`PhotoPicker\` OR ONE \`DocumentPicker\` is allowed per screen. You CANNOT use both on the same screen.
 - Media picker components MUST be inside a \`Form\`.
+- \`min-uploaded-photos\` cannot be greater than \`max-uploaded-photos\`. Same for documents.
 - The value from a media picker (e.g., \`\u0024{form.form_name.picker_name}\`) can ONLY be used in a \`complete\` or \`data_exchange\` action. It CANNOT be used in a \`navigate\` action.
-- The value from a media picker must be a top-level property in the action's payload. E.g., \`"payload": { "media": "\u0024{form.form_name.picker_name}" }\` is VALID. \`"payload": { "some_object": { "media": "..." } }\` is INVALID.
+- The picker's value must be assigned to a top-level property in the payload, like \`"payload": { "my_media": "\u0024{form.form_name.picker_name}" }\`. This is VALID. \`"payload": { "media": {"photo": "\u0024{form.form_name.picker_name}"} }\` is INVALID.
+
 
 **ACTION DEFINITIONS (Inside Footer's \`on-click-action\`):**
 - **Navigate**: Use the nested \`next\` object: \`{ "name": "navigate", "next": { "type": "screen", "name": "SCREEN_ID" } }\`
-- **Complete**: Use a \`payload\` object to gather data from all forms: \`{ "name": "complete", "payload": { "field": "\u0024{form.form_name.field_name}" } }\`
+- **Complete/Data Exchange**: Use a \`payload\` object to gather data: \`{ "name": "complete", "payload": { "field": "\u0024{form.form_name.field_name}" } }\`
 
 ---
 **FULL, VALID EXAMPLE TO FOLLOW:**
@@ -86,7 +89,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
         "type": "SingleColumnLayout",
         "children": [
           {
-            "type": "TextHeading",
+            "type": "Headline",
             "text": "Welcome to Screen A"
           },
           {
@@ -122,7 +125,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
         "type": "SingleColumnLayout",
         "children": [
           {
-            "type": "TextHeading",
+            "type": "Headline",
             "text": "This is the final screen."
           },
           {
@@ -130,7 +133,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
             "name": "form_b",
             "children": [
               {
-                "type": "TextBody",
+                "type": "Text",
                 "text": "Click submit to finish."
               },
               {

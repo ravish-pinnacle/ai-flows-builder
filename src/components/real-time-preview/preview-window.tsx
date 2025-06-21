@@ -202,6 +202,8 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     const key = component.id || `${component.type}-${component.name || index}`;
 
     switch (component.type) {
+      case 'Headline':
+        return <h2 key={key} className="text-xl font-bold mb-3 px-2 py-1">{component.text}</h2>;
       case 'TextHeading':
         return <h2 key={key} className="text-xl font-semibold mb-3 px-2 py-1">{component.text}</h2>;
       case 'TextSubheading':
@@ -259,7 +261,8 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             </div>
           </div>
         );
-      case 'RadioButtonsGroup':
+      case 'RadioButtonGroup':
+      case 'RadioButtonsGroup': // Handle both variations
         return (
           <RadioGroup key={key} name={component.name} className="mb-4 px-2 py-1">
             {component.label && <Label className="mb-2 block text-sm font-medium text-gray-700">{component.label}</Label>}

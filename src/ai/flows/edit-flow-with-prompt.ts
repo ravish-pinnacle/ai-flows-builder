@@ -45,17 +45,19 @@ Your goal is to apply the requested changes and return the complete, updated, an
     - A \`Footer\` component that serves as a "Next" or "Submit" button for a form MUST be the **LAST** item inside that \`Form\`'s \`children\` array.
     - A \`Footer\` can also be a direct child of the \`layout\` (outside a \`Form\`) if it's for general screen navigation not tied to form submission.
 4.  **COMPONENT DEFINITIONS (Examples)**:
-    - \`TextHeading\`, \`TextBody\`, etc. for styled text.
+    - \`Text\`, \`Headline\` for styled text.
     - \`Image\`: \`{"type": "Image", "src": "placeholder.png"}\`
     - \`TextInput\`: \`{"type": "TextInput", "name": "...", "label": "..."}\`
     - \`RadioButtonsGroup\`, \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
-    - \`PhotoPicker\`: \`{"type": "PhotoPicker", "name": "...", "label": "..."}\`.
-    - \`DocumentPicker\`: \`{"type": "DocumentPicker", "name": "...", "label": "..."}\`.
+    - \`PhotoPicker\`: \`{"type": "PhotoPicker", "name": "...", "label": "...", "description": "...", "photo-source": "camera_gallery"}\`.
+    - \`DocumentPicker\`: \`{"type": "DocumentPicker", "name": "...", "label": "...", "description": "...", "allowed-mime-types": ["application/pdf"]}\`.
 
 5.  **MEDIA UPLOAD CONSTRAINTS (VERY IMPORTANT):**
     - Only ONE \`PhotoPicker\` OR ONE \`DocumentPicker\` is allowed per screen. They cannot be used together.
     - Media picker components MUST be inside a \`Form\`.
+    - \`min-uploaded-photos\` cannot be greater than \`max-uploaded-photos\`.
     - The value from a media picker (e.g., \`\u0024{form.form_name.picker_name}\`) can ONLY be used in a \`complete\` or \`data_exchange\` action. It CANNOT be used in a \`navigate\` action.
+    - The picker's value must be assigned to a top-level property in the payload, like \`"payload": { "my_media": "\u0024{form.form_name.picker_name}" }\`.
 
 6.  **ACTION DEFINITIONS (Inside Footer's \`on-click-action\` property)**:
     - **Navigate**: \`{ "name": "navigate", "next": { "type": "screen", "name": "SCREEN_ID" } }\`
