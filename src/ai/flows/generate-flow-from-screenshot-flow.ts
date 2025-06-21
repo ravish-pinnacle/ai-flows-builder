@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Generates a WhatsApp flow from a website screenshot and an optional text prompt.
@@ -56,6 +57,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
 - \`RadioButtonsGroup\`: \`{"type": "RadioButtonsGroup", "name": "...", "label": "...", "data-source": [{"id": "a", "title": "A"}]}\` (data-source is required)
 - \`Dropdown\`: \`{"type": "Dropdown", "name": "...", "label": "...", "data-source": [{"id": "b", "title": "B"}]}\` (data-source is required)
 - \`DatePicker\`: \`{"type": "DatePicker", "name": "...", "label": "..."}\`
+- \`Media\`: \`{"type": "Media", "name": "...", "label": "Upload a file", "media_type": "image"}\` (media_type can be "image" or "document". MUST be inside a Form)
 
 **ACTION DEFINITIONS (Inside Footer):**
 - **Navigate**:

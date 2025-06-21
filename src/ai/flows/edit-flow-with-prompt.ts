@@ -50,6 +50,7 @@ Your goal is to apply the requested changes and return the complete, updated, an
     - \`Image\`: \`{"type": "Image", "src": "placeholder.png"}\`
     - \`TextInput\`: \`{"type": "TextInput", "name": "...", "label": "..."}\`
     - \`RadioButtonsGroup\`, \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
+    - \`Media\`: \`{"type": "Media", "name": "...", "label": "Upload a file", "media_type": "image"}\` (media_type can be "image" or "document". MUST be inside a Form)
 5.  **ACTION DEFINITIONS (Inside Footer's \`on-click-action\` property)**:
     - **Navigate**: \`{ "name": "navigate", "next": { "type": "screen", "name": "SCREEN_ID" } }\`
     - **Complete**: \`{ "name": "complete", "payload": { "field": "\u0024{form.form_name.field_name}" } }\` (payload collects data from forms).

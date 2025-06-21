@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Generates a WhatsApp flow from a text prompt.
@@ -53,6 +54,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
 - Use specific text types: \`TextHeading\`, \`TextSubheading\`, \`TextBody\`, \`TextCaption\`.
 - \`Image\`: Must have a \`"src"\` property. e.g., \`{"type": "Image", "src": "placeholder.png"}\`.
 - \`RadioButtonsGroup\` & \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
+- \`Media\`: \`{"type": "Media", "name": "...", "label": "Upload a file", "media_type": "image"}\` (media_type can be "image" or "document". MUST be inside a Form)
 
 **ACTION DEFINITIONS (Inside Footer's \`on-click-action\`):**
 - **Navigate**: Use the nested \`next\` object: \`{ "name": "navigate", "next": { "type": "screen", "name": "SCREEN_ID" } }\`

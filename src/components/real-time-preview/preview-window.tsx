@@ -3,7 +3,7 @@
 
 import type { FC } from 'react';
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send, ExternalLink } from 'lucide-react';
+import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send, ExternalLink, FileUp } from 'lucide-react';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { Button as ShadButton } from '@/components/ui/button';
@@ -38,7 +38,6 @@ interface FlowComponent {
   label?: string; // For form elements, Button, Footer
   style?: string[]; // For Text component
   src?: string; // For Image component
-  image_id?: string; // Kept for potential backward compatibility, but 'src' is primary now
   "data-source"?: { id: string; title: string }[]; // For CheckboxGroup, RadioButtonGroup, Dropdown
   url?: string; // For EmbeddedLink
   "on-click-action"?: { // For Footer actions primarily
@@ -46,9 +45,9 @@ interface FlowComponent {
     next?: { type: string; name: string }; // For navigation
     payload?: Record<string, any>; // For complete/data_exchange
   };
-  action_id?: string; // For standalone Button components (if still used)
   children?: FlowComponent[]; // For Form component
-  // ... other component-specific props
+  media_type?: 'image' | 'document';
+  max_file_size?: number;
 }
 
 
@@ -68,8 +67,6 @@ interface ParsedFlow {
   data_api_version?: string;
   routing_model?: Record<string, string[]>;
   screens: FlowScreen[];
-  actions?: Array<{ id: string; type: string; screen_id?: string; /* other action props */ }>; // Root level actions array for standalone Buttons
-  // ... other flow props
 }
 
 interface PreviewWindowProps {
@@ -133,64 +130,6 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     if (!parsedFlow || !activeScreenId) return null;
     return parsedFlow.screens.find(screen => screen.id === activeScreenId) || null;
   }, [parsedFlow, activeScreenId]);
-
-  const handleLegacyButtonAction = (component: FlowComponent) => {
-    const actionId = component.action_id;
-
-    if (!actionId) {
-      toast({
-        title: "Button Action Missing (Preview)",
-        description: `Button "${component.label}" does not have an 'action_id' defined.`,
-        variant: "default",
-      });
-      return;
-    }
-
-    if (!parsedFlow || !parsedFlow.actions || parsedFlow.actions.length === 0) {
-      toast({
-        title: "Flow Structure Issue (Preview)",
-        description: `The flow JSON is missing a root 'actions' array, or it's empty. Button actions (like for "${component.label}" with action_id "${actionId}") are defined there and are required for navigation. This flow might be using inline footer actions instead.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const action = parsedFlow.actions.find(act => act.id === actionId);
-
-    if (!action) {
-      toast({
-        title: "Button Action Not Found (Preview)",
-        description: `Button "${component.label}" has action_id "${actionId}", but this ID was not found in the root 'actions' array of the flow JSON.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (action.type === "navigate" && action.screen_id) {
-      const targetScreen = parsedFlow.screens.find(s => s.id === action.screen_id);
-      if (targetScreen) {
-        if (activeScreenId) {
-          setNavigationHistory(prevHistory => [...prevHistory, activeScreenId]);
-        }
-        setActiveScreenId(action.screen_id);
-        toast({
-          title: "Navigation (Preview)",
-          description: `Button navigated to screen: ${action.screen_id}`,
-        });
-      } else {
-        toast({
-          title: "Navigation Error (Preview)",
-          description: `Screen ID "${action.screen_id}" (from action "${actionId}") not found in flow screens.`,
-          variant: "destructive",
-        });
-      }
-    } else {
-      toast({
-        title: "Action Triggered (Preview)",
-        description: `Label: ${component.label}, Action ID: ${actionId}, Type: ${action.type}. (This action type is not fully simulated for navigation in preview).`,
-      });
-    }
-  };
 
   const handleFooterAction = (component: FlowComponent) => {
     const actionDetails = component["on-click-action"];
@@ -274,7 +213,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         if (component.style?.includes("ITALIC")) textClasses += " italic";
         return <p key={key} className={textClasses}>{component.text}</p>;
       case 'Image':
-        const imgSrc = component.src || component.image_id;
+        const imgSrc = component.src;
         return (
           <div key={key} className="my-3 flex justify-center px-2">
             {imgSrc && (
@@ -287,19 +226,6 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
                 data-ai-hint="flow image"
               />
             )}
-          </div>
-        );
-      case 'Button': // Standalone button
-        return (
-          <div className="px-2 py-2">
-            <ShadButton
-              key={key}
-              variant="default"
-              className="w-full my-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={() => handleLegacyButtonAction(component)}
-            >
-              {component.label}
-            </ShadButton>
           </div>
         );
       case 'TextInput':
@@ -330,7 +256,7 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             </div>
           </div>
         );
-      case 'RadioButtonsGroup': // Corrected from RadioButtonGroup
+      case 'RadioButtonsGroup':
         return (
           <RadioGroup key={key} name={component.name} className="mb-4 px-2 py-1">
             {component.label && <Label className="mb-2 block text-sm font-medium text-gray-700">{component.label}</Label>}
@@ -368,6 +294,19 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               <CalendarDays size={16} className="mr-2" />
               <span>{component.label || 'Select a date'} (DatePicker)</span>
             </div>
+          </div>
+        );
+      case 'Media':
+        return (
+          <div key={key} className="mb-4 px-2 py-1">
+            {component.label && <Label htmlFor={component.name} className="mb-1 block text-xs font-medium text-gray-600">{component.label}</Label>}
+            <div className="flex items-center gap-2 mt-1">
+                <ShadButton variant="outline" className="w-full justify-start text-left font-normal">
+                    <FileUp className="mr-2 h-4 w-4" />
+                    <span>Upload {component.media_type || 'file'}</span>
+                </ShadButton>
+            </div>
+            {component.max_file_size && <p className="text-xs text-muted-foreground mt-1">Max file size: {(component.max_file_size / (1024*1024)).toFixed(1)} MB</p>}
           </div>
         );
       case 'OptIn':
@@ -608,4 +547,3 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     </div>
   );
 };
-
