@@ -3,7 +3,7 @@
 
 import type { FC } from 'react';
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send, ExternalLink, FileUp, Camera } from 'lucide-react';
+import { Smartphone, Wifi, BatteryFull, MessageCircle, ArrowLeft, CalendarDays, Link as LinkIcon, ShieldQuestion, Send, ExternalLink, FileUp, Camera, MoreVertical, X } from 'lucide-react';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { Button as ShadButton } from '@/components/ui/button';
@@ -77,6 +77,13 @@ interface PreviewWindowProps {
   flowJson: string;
 }
 
+const formatFileSize = (kb?: number) => {
+    if (kb === undefined) return null;
+    if (kb < 1024) return `${kb} KB`;
+    const mb = kb / 1024;
+    return `Max file size ${parseFloat(mb.toFixed(1))} MB.`;
+};
+
 export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const phoneRef = useRef<HTMLDivElement>(null);
@@ -134,6 +141,13 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
     if (!parsedFlow || !activeScreenId) return null;
     return parsedFlow.screens.find(screen => screen.id === activeScreenId) || null;
   }, [parsedFlow, activeScreenId]);
+
+  const { screenComponents, footerComponent } = useMemo(() => {
+      const children = currentScreen?.layout?.children || [];
+      const footer = children.find(c => c.type === 'Footer' && c['on-click-action']) ?? null;
+      const components = children.filter(c => c !== footer);
+      return { screenComponents: components, footerComponent: footer };
+  }, [currentScreen]);
 
   const handleFooterAction = (component: FlowComponent) => {
     const actionDetails = component["on-click-action"];
@@ -302,28 +316,38 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
             </div>
           </div>
         );
-      case 'PhotoPicker':
+      case 'PhotoPicker': {
+        const maxFileSize = formatFileSize(component['max-file-size-kb']);
         return (
-          <Card key={key} className="mb-4 p-3 bg-muted/30">
-            <Label className="font-semibold text-sm">{component.label}</Label>
-            {component.description && <p className="text-xs text-muted-foreground mt-1 mb-3">{component.description}</p>}
-             <ShadButton variant="outline" className="w-full mt-2">
-              <Camera className="mr-2 h-4 w-4" />
-              Take Photo
-            </ShadButton>
-          </Card>
+            <div key={key} className="my-4 space-y-1 px-1">
+                <p className="font-semibold text-base">{component.label}</p>
+                {component.description && <p className="text-sm text-muted-foreground">{component.description}</p>}
+                {maxFileSize && <p className="text-sm text-muted-foreground">{maxFileSize}</p>}
+                <div className="pt-4">
+                    <ShadButton variant="outline" className="w-full rounded-full border-gray-300 text-green-700 dark:text-green-500 font-semibold text-base py-2.5 h-auto hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <Camera className="mr-2 h-5 w-5" />
+                        Take photo
+                    </ShadButton>
+                </div>
+            </div>
         );
-       case 'DocumentPicker':
-        return (
-           <Card key={key} className="mb-4 p-3 bg-muted/30">
-            <Label className="font-semibold text-sm">{component.label}</Label>
-            {component.description && <p className="text-xs text-muted-foreground mt-1 mb-3">{component.description}</p>}
-            <ShadButton variant="outline" className="w-full mt-2">
-              <FileUp className="mr-2 h-4 w-4" />
-              Upload Document
-            </ShadButton>
-          </Card>
-        );
+      }
+      case 'DocumentPicker': {
+          const maxFileSize = formatFileSize(component['max-file-size-kb']);
+          return (
+              <div key={key} className="my-4 space-y-1 px-1">
+                  <p className="font-semibold text-base">{component.label}</p>
+                  {component.description && <p className="text-sm text-muted-foreground">{component.description}</p>}
+                  {maxFileSize && <p className="text-sm text-muted-foreground">{maxFileSize}</p>}
+                  <div className="pt-4">
+                      <ShadButton variant="outline" className="w-full rounded-full border-gray-300 text-green-700 dark:text-green-500 font-semibold text-base py-2.5 h-auto hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <FileUp className="mr-2 h-5 w-5" />
+                          Upload document
+                      </ShadButton>
+                  </div>
+              </div>
+          );
+      }
       case 'OptIn':
         return (
           <div key={key} className="flex items-center justify-between mb-4 px-2 py-2 border rounded-md border-gray-200 bg-gray-50">
@@ -346,21 +370,9 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
         );
       case 'Footer': {
         const hasAction = component["on-click-action"] && component["on-click-action"].name;
-        const footerClasses = cn(
-          "text-center mt-auto mb-2 mx-2 rounded-md py-3 px-4", 
-          hasAction
-            ? "bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer font-semibold text-sm" 
-            : "text-xs text-muted-foreground" 
-        );
+        if (hasAction) return null; // Handled separately at the bottom of the sheet
         return (
-          <div
-            key={key}
-            className={footerClasses}
-            onClick={hasAction ? () => handleFooterAction(component) : undefined}
-            role={hasAction ? "button" : undefined}
-            tabIndex={hasAction ? 0 : undefined}
-            onKeyDown={hasAction ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFooterAction(component); } } : undefined}
-          >
+          <div key={key} className="text-xs text-muted-foreground text-center mt-4">
             {component.label || component.text}
           </div>
         );
@@ -524,34 +536,43 @@ export const PreviewWindow: FC<PreviewWindowProps> = ({ flowJson }) => {
               className="h-[520px] rounded-t-[20px] p-0 flex flex-col overflow-hidden shadow-2xl bg-background border-t border-gray-200 dark:border-gray-700"
               onOpenAutoFocus={(e) => e.preventDefault()}
             >
-              <SheetHeader className="p-4 border-b dark:border-gray-700 flex-shrink-0 flex flex-row items-center justify-between relative bg-background">
-                <div className="flex items-center gap-2">
-                  {navigationHistory.length > 0 && (
-                    <ShadButton variant="ghost" size="icon" onClick={handleGoBack} className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
-                       <ArrowLeft size={18} />
-                    </ShadButton>
-                  )}
-                  <div className={navigationHistory.length === 0 ? "pl-8 sm:pl-0" : ""}> 
-                    <SheetTitle className="text-base font-semibold text-left">{currentScreen?.title || currentScreen?.id || 'Interactive Form'}</SheetTitle>
-                    <SheetDescription className="text-xs text-left">
-                      {parsedFlow?.data_api_version ? `Flow Data API Version: ${parsedFlow.data_api_version}` : parsedFlow?.version ? `Flow Version: ${parsedFlow.version}` : 'Your interactive content appears here.'}
-                    </SheetDescription>
-                  </div>
-                </div>
-                <SheetClose className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" />
-              </SheetHeader>
-              <ScrollArea className="flex-1 min-h-0 h-0">
-                <div className="p-4 space-y-3">
-                    {currentScreen?.layout?.children?.map((component, index) =>
+              <div className="p-3 border-b dark:border-gray-700 flex-shrink-0 flex items-center justify-between">
+                  <ShadButton variant="ghost" size="icon" onClick={() => setIsSheetOpen(false)} className="h-9 w-9">
+                      <X size={20} />
+                  </ShadButton>
+                  <p className="text-base font-semibold">{currentScreen?.title || 'Interactive Form'}</p>
+                  <ShadButton variant="ghost" size="icon" className="h-9 w-9">
+                      <MoreVertical size={20} />
+                  </ShadButton>
+              </div>
+              <ScrollArea className="flex-1 min-h-0">
+                <div className="p-4">
+                    {screenComponents.map((component, index) =>
                         renderFlowComponent(component, index)
                     )}
-                    {currentScreen && (!currentScreen.layout?.children || currentScreen.layout.children.length === 0) && (
+                    {currentScreen && screenComponents.length === 0 && (!footerComponent) && (
                         <div className="p-4 text-center text-gray-500">
-                        <p>This screen has no components.</p>
+                          <p>This screen has no components.</p>
                         </div>
                     )}
                 </div>
               </ScrollArea>
+               {footerComponent && (
+                <div className="p-4 border-t bg-background flex-shrink-0 space-y-2">
+                  <ShadButton
+                    className="w-full rounded-full bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 font-semibold h-11"
+                    onClick={() => handleFooterAction(footerComponent)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFooterAction(footerComponent); } }}
+                  >
+                    {footerComponent.label}
+                  </ShadButton>
+                  <p className="text-center text-xs text-muted-foreground">
+                      Managed by the business. <a href="#" onClick={(e) => e.preventDefault()} className="text-green-600 no-underline">Learn more</a>
+                  </p>
+                </div>
+              )}
             </SheetContent>
           </SheetPortal>
         </div>
