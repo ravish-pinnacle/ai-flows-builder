@@ -41,7 +41,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
 
 **KEY STRUCTURAL RULES:**
 1.  **ROOT PROPERTIES**: The JSON MUST start with \`"version": "7.1"\`, \`"data_api_version": "3.0"\`, and a \`"routing_model"\`.
-2.  **SCREENS**: Each screen object MUST have an \`id\`, a \`title\`, and a \`layout\` object.
+2.  **SCREENS**: Each screen object MUST have an \`id\`, a \`title\`, and a \`layout\` object. Screen \`id\`s MUST be strings containing only uppercase letters, numbers, and underscores (e.g., SCREEN_NAME, STEP_2).
 3.  **FORM & FOOTER PLACEMENT (VERY IMPORTANT)**:
     - To use any input fields (\`TextInput\`, \`Dropdown\`, \`PhotoPicker\`, etc.), they MUST be inside a \`"type": "Form"\` component.
     - The \`Footer\` component that serves as the "Next" or "Submit" button for a form MUST be the **LAST** item inside the \`Form\`'s \`children\` array.
