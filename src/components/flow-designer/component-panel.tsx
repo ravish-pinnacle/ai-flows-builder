@@ -3,8 +3,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Heading1, 
-  PilcrowSquare, 
+  Heading1, // TextHeading
+  Heading2, // TextSubheading
+  Pilcrow, // TextBody
+  MessageSquareQuote, // TextCaption
   ImageIcon, 
   MousePointerClick,
   Edit3, // TextInput
@@ -23,8 +25,10 @@ import {
 
 // Based on WhatsApp Flow Components: https://developers.facebook.com/docs/whatsapp/flows/reference/flowjson/components
 const components = [
-  { name: "Headline", icon: <Heading1 className="h-5 w-5" />, description: "A large text heading for the screen." },
-  { name: "Text", icon: <PilcrowSquare className="h-5 w-5" />, description: "A block of text content (paragraph)." },
+  { name: "TextHeading", icon: <Heading1 className="h-5 w-5" />, description: "The main title of a screen." },
+  { name: "TextSubheading", icon: <Heading2 className="h-5 w-5" />, description: "A secondary heading." },
+  { name: "TextBody", icon: <Pilcrow className="h-5 w-5" />, description: "A block of text content (paragraph)." },
+  { name: "TextCaption", icon: <MessageSquareQuote className="h-5 w-5" />, description: "Smaller, secondary text, often for notes." },
   { name: "Image", icon: <ImageIcon className="h-5 w-5" />, description: "Display an image from a URL or uploaded asset." },
   { name: "Button", icon: <MousePointerClick className="h-5 w-5" />, description: "A clickable button to trigger actions." },
   { name: "TextInput", icon: <Edit3 className="h-5 w-5" />, description: "A single-line text input field." },
@@ -33,11 +37,11 @@ const components = [
   { name: "RadioButtonGroup", icon: <CircleDot className="h-5 w-5" />, description: "A group of radio buttons for single selection." },
   { name: "Dropdown", icon: <ChevronDownSquare className="h-5 w-5" />, description: "A dropdown menu for selecting one option from a list." },
   { name: "DatePicker", icon: <CalendarDays className="h-5 w-5" />, description: "A component for selecting a date." },
-  { name: "PhotoPicker", icon: <Camera className="h-5 w-5" />, description: "Allows uploading media from camera or gallery." },
-  { name: "DocumentPicker", icon: <FileText className="h-5 w-5" />, description: "Allows uploading media from files or gallery." },
+  { name: "PhotoPicker", icon: <Camera className="h-5 w-5" />, description: "Allows uploading photos from camera or gallery." },
+  { name: "DocumentPicker", icon: <FileText className="h-5 w-5" />, description: "Allows uploading documents from files." },
   { name: "OptIn", icon: <ToggleLeft className="h-5 w-5" />, description: "An opt-in toggle component, typically for agreements." },
   { name: "EmbeddedLink", icon: <LinkIcon className="h-5 w-5" />, description: "Text that acts as a hyperlink to an external URL." },
-  { name: "Footer", icon: <PilcrowSquare className="h-5 w-5" />, description: "A footer text, often for disclaimers or short notes." }, // PilcrowSquare is a placeholder
+  { name: "Footer", icon: <Pilcrow className="h-5 w-5" />, description: "A footer text, often for disclaimers or short notes." }, // Pilcrow is a placeholder
   { name: "ScreenConfirmation", icon: <ShieldQuestion className="h-5 w-5" />, description: "A component used to define confirmation screens."}
 ];
 

@@ -52,13 +52,11 @@ Flow Definition:
 Provide specific, actionable suggestions, focusing on:
 - **Schema Adherence (v7.1)**:
     - Verify the "version" property is "7.1". If not, suggest updating it.
-    - Check for non-standard components like 'TextCaption', 'TextBody', or 'RichText'. If found, suggest replacing them with standard v7.1 components:
-        - 'TextCaption'/'TextBody' should typically be replaced by 'Text' (using its 'style' property for bold/italic if needed) or 'Headline'.
-        - 'RichText' functionality (like markdown for headings, lists, embedded images/links) should be achieved using a combination of 'Headline', multiple 'Text' components, 'Image', and 'EmbeddedLink' components.
+    - Check for non-standard components like 'Text' or 'Headline'. If found, suggest replacing them with the standard v7.1 components: 'TextHeading', 'TextSubheading', 'TextBody', or 'TextCaption'.
     - Ensure actions (navigate, data_exchange) are primarily tied to 'Button' components or specific data_exchange success/error handlers, not to components like 'OptIn' or 'Footer' for their primary interaction.
-- **Clarity and Simplicity**: Are screen layouts intuitive? Is text clear and concise (using 'Text' or 'Headline')? Are there too many components on a single screen?
+- **Clarity and Simplicity**: Are screen layouts intuitive? Is text clear and concise (using 'TextHeading', 'TextSubheading', 'TextBody', 'TextCaption')? Are there too many components on a single screen?
 - **User Journey**: Is the navigation between screens logical? Can the number of steps or screens be reduced without losing functionality?
-- **Component Usage (v7.1)**: Are standard components like Text, Image, Button, TextInput, TextArea, CheckboxGroup, RadioButtonGroup, Dropdown, DatePicker, OptIn, EmbeddedLink, Footer, Headline, and ScreenConfirmation used effectively and according to v7.1 specs? For example, is a Dropdown used when a RadioButtonGroup might be better for a small number of options? Ensure each item in 'data_source' for CheckboxGroup, RadioButtonGroup, and Dropdown has both a unique 'id' and a user-facing 'title'. If 'title' is missing, this is a critical error and must be flagged.
+- **Component Usage (v7.1)**: Are standard components like TextHeading, TextSubheading, TextBody, TextCaption, Image, Button, TextInput, TextArea, CheckboxGroup, RadioButtonGroup, Dropdown, DatePicker, OptIn, EmbeddedLink, Footer, and ScreenConfirmation used effectively and according to v7.1 specs? For example, is a Dropdown used when a RadioButtonGroup might be better for a small number of options? Ensure each item in 'data_source' for CheckboxGroup, RadioButtonGroup, and Dropdown has both a unique 'id' and a user-facing 'title'. If 'title' is missing, this is a critical error and must be flagged.
 - **Media Component Rules**:
     - Verify that a screen does not contain both a \`PhotoPicker\` and a \`DocumentPicker\`.
     - Verify that a screen contains at most one \`PhotoPicker\` or one \`DocumentPicker\`.

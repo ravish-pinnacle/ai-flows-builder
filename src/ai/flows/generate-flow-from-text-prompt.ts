@@ -51,8 +51,10 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
     - **DO NOT** place the \`Footer\` outside the \`layout.children\` array. This is invalid. Study the example below to see the correct placement.
 
 **COMPONENT DEFINITIONS:**
-- \`Headline\`: \`{"type": "Headline", "text": "..."}\`
-- \`Text\`: \`{"type": "Text", "text": "...", "style": ["BOLD"]}\`
+- \`TextHeading\`: \`{"type": "TextHeading", "text": "..."}\`
+- \`TextSubheading\`: \`{"type": "TextSubheading", "text": "..."}\`
+- \`TextBody\`: \`{"type": "TextBody", "text": "...", "font-weight": "bold"}\` (font-weight can be 'bold', 'italic', 'bold_italic', 'normal')
+- \`TextCaption\`: \`{"type": "TextCaption", "text": "..."}\`
 - \`Image\`: Must have a \`"src"\` property. e.g., \`{"type": "Image", "src": "placeholder.png"}\`.
 - \`RadioButtonsGroup\` & \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
 - \`PhotoPicker\`: \`{"type": "PhotoPicker", "name": "...", "label": "...", "description": "...", "photo-source": "camera_gallery", "min-uploaded-photos": 1, "max-uploaded-photos": 10}\`.
@@ -89,7 +91,7 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
         "type": "SingleColumnLayout",
         "children": [
           {
-            "type": "Headline",
+            "type": "TextHeading",
             "text": "Welcome to Screen A"
           },
           {
@@ -125,17 +127,13 @@ Your primary goal is to generate a VALID JSON that strictly follows the structur
         "type": "SingleColumnLayout",
         "children": [
           {
-            "type": "Headline",
+            "type": "TextBody",
             "text": "This is the final screen."
           },
           {
             "type": "Form",
             "name": "form_b",
             "children": [
-              {
-                "type": "Text",
-                "text": "Click submit to finish."
-              },
               {
                 "type": "Footer",
                 "label": "Submit",

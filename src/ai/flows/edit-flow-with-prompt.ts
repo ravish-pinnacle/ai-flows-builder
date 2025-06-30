@@ -45,7 +45,10 @@ Your goal is to apply the requested changes and return the complete, updated, an
     - A \`Footer\` component that serves as a "Next" or "Submit" button for a form MUST be the **LAST** item inside that \`Form\`'s \`children\` array.
     - A \`Footer\` can also be a direct child of the \`layout\` (outside a \`Form\`) if it's for general screen navigation not tied to form submission.
 4.  **COMPONENT DEFINITIONS (Examples)**:
-    - \`Text\`, \`Headline\` for styled text.
+    - \`TextHeading\`: \`{"type": "TextHeading", "text": "..."}\`
+    - \`TextSubheading\`: \`{"type": "TextSubheading", "text": "..."}\`
+    - \`TextBody\`: \`{"type": "TextBody", "text": "...", "font-weight": "bold"}\` (font-weight can be 'bold', 'italic', 'bold_italic', 'normal')
+    - \`TextCaption\`: \`{"type": "TextCaption", "text": "..."}\`
     - \`Image\`: \`{"type": "Image", "src": "placeholder.png"}\`
     - \`TextInput\`: \`{"type": "TextInput", "name": "...", "label": "..."}\`
     - \`RadioButtonsGroup\`, \`Dropdown\`: MUST have a \`"data-source"\` array with \`id\` and \`title\` for each item.
