@@ -39,7 +39,7 @@ Your goal is to apply the requested changes and return the complete, updated, an
 
 **CRITICAL INSTRUCTIONS FOR JSON STRUCTURE (Adhere to these strictly):**
 1.  **ROOT PROPERTIES**: The JSON MUST start with \`"version": "7.1"\`, \`"data_api_version": "3.0"\`, and a \`"routing_model"\`.
-2.  **SCREENS**: Each screen object MUST have an \`id\`, a \`title\` (human-readable), and a \`layout\` object. Screen \`id\`s MUST be strings containing only uppercase letters, numbers, and underscores (e.g., SCREEN_NAME, STEP_2). The last screen in a path should be marked with \`"terminal": true\`.
+2.  **SCREENS**: Each screen object MUST have an \`id\`, a \`title\` (human-readable), and a \`layout\` object. Screen \`id\`s MUST be strings containing only uppercase letters and underscores (e.g., SCREEN_NAME, WELCOME_STEP). Numbers are not allowed. The last screen in a path should be marked with \`"terminal": true\`.
 3.  **FORM & FOOTER PLACEMENT**:
     - Input fields (\`TextInput\`, \`Dropdown\`, \`PhotoPicker\`, etc.) MUST be inside a \`"type": "Form"\` component. Each form must have a unique \`name\`.
     - A \`Footer\` component that serves as a "Next" or "Submit" button for a form MUST be the **LAST** item inside that \`Form\`'s \`children\` array.

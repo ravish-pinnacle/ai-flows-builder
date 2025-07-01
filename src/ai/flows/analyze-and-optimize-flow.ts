@@ -50,7 +50,7 @@ Flow Definition:
 \`\`\`
 
 Provide specific, actionable suggestions, focusing on:
-- **Screen ID Formatting**: Verify that all screen \`id\` properties and all screen names used in the \`routing_model\` consist only of uppercase letters, numbers, and underscores (e.g., 'VALID_ID', 'SCREEN_2').
+- **Screen ID Formatting**: Verify that all screen \`id\` properties and all screen names used in the \`routing_model\` consist only of uppercase letters and underscores (e.g., 'VALID_ID', 'WELCOME_SCREEN'). Numbers are not allowed.
 - **Schema Adherence (v7.1)**:
     - Verify the "version" property is "7.1". If not, suggest updating it.
     - Check for non-standard components like 'Text' or 'Headline'. If found, suggest replacing them with the standard v7.1 components: 'TextHeading', 'TextSubheading', 'TextBody', or 'TextCaption'.
